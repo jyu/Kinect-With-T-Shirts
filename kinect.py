@@ -8,3 +8,86 @@ import pygame
 import sys
 import math
 
+class Game(object):
+    def __init__(self):
+        pygame.init()
+
+        self.screen_width = 1920
+        self.screen_height = 1080
+        # screen updates
+        self._clock = pygame.time.Clock()
+        # set the width and height of the window half of width.height
+        self._screen = pygame.display.set_mode((960,540),
+                       pygame.HWSURFACE|pygame.DOUBLEBUF, 32)
+        # exit game
+        self._done = False
+        # color and body frames from kinect runtime object
+        self._kinect = PyKinectRuntime.PyKinectRuntime(
+                       PyKinectV2.FrameSourceTypes_Color |
+                       PyKinectV2.FrameSourceTypes_Body)
+
+        self._bodies = None
+        self._frame_surface = pygame.Surface(
+                            (self._kinect.color_frame_desc.Width,
+                             self._kinect.color_frame_desc.Height),
+                             0,
+                             32)
+    def run(self):
+        while not self._done:
+
+            #pygame events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self._done = True
+
+            #reads and processes body frame from kinect
+            if self._kinect.has_new_body_frame():
+                self._bodies = self._kinect.get_last_body_frame()
+
+                for i in range(0, self._kinect.max_body_count):
+                    body = self._bodies.bodies[i]
+                    if body.is_tracked:
+                        joints = body.joints
+                        #print(joints[PyKinectV2.JointType_HandRight].Position.z)
+                        #displays the z coordinate of the right hand
+                        #which is how far away the right hand is from the sensor
+
+                        #calculates flap:
+                        self.cur_right_handHeight = joints[PyKinectV2.JointType_HandRight].Position.y
+                        self.cur_left_hand_height = joints[PyKinectV2.JointType_HandLeft].Position.y
+
+                        self.flap = ((self.prev_left_hand_height - self.cur_left_hand_height) +
+                                     (self.prev_right_hand_height - self.cur_right_hand_height))
+
+                        if self.flap < 0:
+                            self.flap = 0
+
+                        self.prev_left_hand_height = self.cur_left_hand_height
+                        self.prev_right_hand_height = self.cur_right_hand_height
+
+                        print(self.flap)
+
+            #reads color images from kinect
+            if self._kinect.has_new_color_frame():
+                frame = self._kinect.get_last_color_frame()
+                self.draw_color_frame(frame, self._frame_surface)
+                frame = None
+
+            #changes ratio of image to output to window
+            h_to_w = float(self._frame_surface.get_height() /
+                           self._frame_surface.get_width())
+            target_height = int(h_to_w*self._screen.get_width())
+            surface_to_draw = pygame.transform.scale(self._frame_surface,
+                                                     (self._screen.get_width(),target_height))
+            self._screen.blit(surface_to_draw, (0,0))
+            surface_to_draw = None
+            pygame.display.update()
+
+            self._clock.tick(60)
+
+        self._kinect.close()
+        pygame.quit()
+
+
+game = Game();
+game.run();
