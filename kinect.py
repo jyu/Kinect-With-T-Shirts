@@ -32,6 +32,14 @@ class Game(object):
                              self._kinect.color_frame_desc.Height),
                              0,
                              32)
+
+    def draw_color_frame(self, frame, target_surface):
+        target_surface.lock()
+        address = self._kinect.surface_as_array(target_surface.get_buffer())
+        ctypes.memmove(address, frame.ctypes.data, frame.size)
+        del address
+        target_surface.unlock()
+
     def run(self):
         while not self._done:
 
@@ -53,19 +61,19 @@ class Game(object):
                         #which is how far away the right hand is from the sensor
 
                         #calculates flap:
-                        self.cur_right_handHeight = joints[PyKinectV2.JointType_HandRight].Position.y
-                        self.cur_left_hand_height = joints[PyKinectV2.JointType_HandLeft].Position.y
+                        # self.cur_right_handHeight = joints[PyKinectV2.JointType_HandRight].Position.y
+                        # self.cur_left_hand_height = joints[PyKinectV2.JointType_HandLeft].Position.y
 
-                        self.flap = ((self.prev_left_hand_height - self.cur_left_hand_height) +
-                                     (self.prev_right_hand_height - self.cur_right_hand_height))
+                        # self.flap = ((self.prev_left_hand_height - self.cur_left_hand_height) +
+                        #              (self.prev_right_hand_height - self.cur_right_hand_height))
 
-                        if self.flap < 0:
-                            self.flap = 0
+                        # if self.flap < 0:
+                        #     self.flap = 0
 
-                        self.prev_left_hand_height = self.cur_left_hand_height
-                        self.prev_right_hand_height = self.cur_right_hand_height
+                        # self.prev_left_hand_height = self.cur_left_hand_height
+                        # self.prev_right_hand_height = self.cur_right_hand_height
 
-                        print(self.flap)
+                        # print(self.flap)
 
             #reads color images from kinect
             if self._kinect.has_new_color_frame():
@@ -89,5 +97,5 @@ class Game(object):
         pygame.quit()
 
 
-game = Game();
-game.run();
+game = Game()
+game.run()
