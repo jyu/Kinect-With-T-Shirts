@@ -11,9 +11,11 @@ import math
 class Game(object):
     def __init__(self):
         pygame.init()
-
+        # scren variables
         self.screenWidth = 1920
         self.screenHeight = 1080
+        self.sensorScreenHeight = 1.2
+        self.sensorScreenWidth = 3
         # screen updates
         self.clock = pygame.time.Clock()
         # set the width and height of the window half of width.height
@@ -32,6 +34,9 @@ class Game(object):
                              self.kinect.color_frame_desc.Height),
                              0,
                              32)
+        self.initBodyVar()
+
+    def initBodyVar(self):
         #body variables
         self.yLeftShoulder = 0
         self.yRightShoulder = 0
@@ -41,6 +46,10 @@ class Game(object):
         self.xRightShoulder = 0
         self.xLeftHip = 0
         self.xRightHip = 0
+        self.xLeftElbow = 0
+        self.yLeftElbow = 0
+        self.xRightElbow = 0
+        self.yRightElbow = 0
 
 
     def drawColorFrame(self, frame, target_surface):
@@ -64,16 +73,26 @@ class Game(object):
                             PyKinectV2.JointType_ShoulderLeft].Position.x
         self.xRightShoulder = joints[
                               PyKinectV2.JointType_ShoulderRight].Position.x
+    def updateArms(self, joints):
+        #updates arms
+        self.xLeftElbow = joints[PyKinectV2.JointType_ElbowLeft].Position.x
+        self.yLeftElbow = joints[PyKinectV2.JointType_ElbowLeft].Position.y
+        self.xRightElbow = joints[PyKinectV2.JointType_ElbowRight].Position.x
+        self.yRightElbow = joints[PyKinectV2.JointType_ElbowRight].Position.y
+
 
     def drawBody(self):
         rightPart = (self.xRightShoulder + self.xRightHip)/2
         leftPart = (self.xLeftShoulder + self.xLeftHip)/2
         upPart = (self.yRightShoulder + self.yLeftShoulder)/2
         downPart = (self.yRightHip + self.yLeftHip)/2
-        bodyX1 = (rightPart + 1.2)*(self.screenWidth/2.4)
-        bodyY1 = (-1 * (upPart - 0.6))*(self.screenHeight/1.2)
-        bodyX2 = (leftPart + 1.2)*(self.screenWidth/2.4)
-        bodyY2 = (-1 * (downPart - 0.6)) * (self.screenHeight/1.2)
+        #converts sensor coords to pygame screen coords
+        bodyX1 = (rightPart*(self.screenWidth/3) + 1000)
+        bodyY1 = (-1*(upPart-self.sensorScreenHeight/2)*
+                 (self.screenHeight/self.sensorScreenHeight))
+        bodyX2 = (leftPart*(self.screenWidth/3) + 950)
+        bodyY2 = (-1*(downPart-self.sensorScreenHeight/2)*
+                 (self.screenHeight/self.sensorScreenHeight))
 
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2)
@@ -81,6 +100,22 @@ class Game(object):
         pygame.draw.rect(self.frameSurface,
                      (0,200,0),
                      (bodyX1,bodyY1,bodyWidth,bodyHeight)
+                     )
+        pygame.draw.rect(self.frameSurface,
+                     (200,0,0),
+                     (bodyX2,bodyY2,20,20)
+                     )
+        pygame.draw.rect(self.frameSurface,
+                     (200,0,0),
+                     (bodyX1,bodyY1,20,20)
+                     )
+        pygame.draw.rect(self.frameSurface,
+                     (200,0,0),
+                     (bodyX1,bodyY2,20,20)
+                     )
+        pygame.draw.rect(self.frameSurface,
+                     (200,0,0),
+                     (bodyX2,bodyY1,20,20)
                      )
 
     def run(self):
@@ -99,14 +134,16 @@ class Game(object):
                     if body.is_tracked:
                         joints = body.joints
                         self.updateBody(joints)
+                        self.updateArms(joints)
+                        self.drawBody(joints)
+                        self.drawBody()
+
 
             #reads color images from kinect
             if self.kinect.has_new_color_frame():
                 frame = self.kinect.get_last_color_frame()
                 self.drawColorFrame(frame, self.frameSurface)
                 frame = None
-
-            self.drawBody()
 
             #changes ratio of image to output to window
             h_to_w = float(self.frameSurface.get_height() /
