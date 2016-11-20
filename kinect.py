@@ -11,11 +11,7 @@ import math
 class Game(object):
     def __init__(self):
         pygame.init()
-        # scren variables
-        self.screenWidth = 1920
-        self.screenHeight = 1080
-        self.sensorScreenHeight = 1.2
-        self.sensorScreenWidth = 3
+        self.initScreenVar()
         # screen updates
         self.clock = pygame.time.Clock()
         # set the width and height of the window half of width.height
@@ -35,6 +31,16 @@ class Game(object):
                              0,
                              32)
         self.initBodyVar()
+
+    def initScreenVar(self):
+        # screen variables
+        self.screenWidth = 1920
+        self.screenHeight = 1080
+        self.sensorScreenHeight = 1.2
+        self.sensorScreenWidth = 3
+        self.cornerToMiddleConstant = 1000
+        self.shirtCompensationHeight = 30
+        self.shirtCompensationWidth = 20
 
     def initBodyVar(self):
         #body variables
@@ -80,6 +86,8 @@ class Game(object):
         self.xRightElbow = joints[PyKinectV2.JointType_ElbowRight].Position.x
         self.yRightElbow = joints[PyKinectV2.JointType_ElbowRight].Position.y
 
+    def drawArms(self):
+        sleve1 = xLeftElbow
 
     def drawBody(self):
         rightPart = (self.xRightShoulder + self.xRightHip)/2
@@ -87,15 +95,18 @@ class Game(object):
         upPart = (self.yRightShoulder + self.yLeftShoulder)/2
         downPart = (self.yRightHip + self.yLeftHip)/2
         #converts sensor coords to pygame screen coords
-        bodyX1 = (rightPart*(self.screenWidth/3) + 1000)
+
+        bodyX1 = ((rightPart*(self.screenWidth/3)+self.cornerToMiddleConstant)+
+                 self.shirtCompensationWidth)
         bodyY1 = (-1*(upPart-self.sensorScreenHeight/2)*
                  (self.screenHeight/self.sensorScreenHeight))
-        bodyX2 = (leftPart*(self.screenWidth/3) + 950)
+        bodyX2 = ((leftPart*(self.screenWidth/3)+self.cornerToMiddleConstant)-
+                 self.shirtCompensationWidth)
         bodyY2 = (-1*(downPart-self.sensorScreenHeight/2)*
                  (self.screenHeight/self.sensorScreenHeight))
 
         bodyWidth = bodyX2 - bodyX1
-        bodyHeight = -1 * (bodyY1 - bodyY2)
+        bodyHeight = -1 * (bodyY1 - bodyY2) - self.shirtCompensationHeight
 
         pygame.draw.rect(self.frameSurface,
                      (0,200,0),
@@ -135,14 +146,14 @@ class Game(object):
                         joints = body.joints
                         self.updateBody(joints)
                         self.updateArms(joints)
-                        self.drawBody()
-
 
             #reads color images from kinect
             if self.kinect.has_new_color_frame():
                 frame = self.kinect.get_last_color_frame()
                 self.drawColorFrame(frame, self.frameSurface)
                 frame = None
+
+            self.drawBody()
 
             #changes ratio of image to output to window
             h_to_w = float(self.frameSurface.get_height() /
