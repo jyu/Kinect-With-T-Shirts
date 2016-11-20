@@ -162,7 +162,65 @@ class Game(object):
             (200, 200, 0),
             (leftX4, leftY4, 20, 20)
         )
+    def drawRightArm(self):
+        #left arm
+        xShould = self.sensorToScreenX(self.xRightShoulder)
+        yShould = self.sensorToScreenY(self.yRightShoulder)
+        xElb = self.sensorToScreenX(self.xRightElbow)
+        yElb = self.sensorToScreenY(self.yRightElbow)
+        theta = math.atan((yShould - yElb)/(xElb - xShould))
+        thetaPrime = math.pi - math.pi/2 - theta
+        if theta < 0: yElb += 80
+        sleeveLength = 35
+        if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8:
+            #lower left arm
+            leftY1 = yElb + sleeveLength * math.sin(thetaPrime)
+            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
+            leftY2 = yElb - sleeveLength * math.sin(thetaPrime)
+            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
+            #upper left arm
+            leftY3 = yShould - sleeveLength * math.cos(theta)
+            leftX3 = xShould - sleeveLength * math.sin(theta)
+            leftY4 = yShould + sleeveLength * math.cos(theta)
+            leftX4 = xShould + sleeveLength * math.sin(theta)
+        else:
+            #lower left arm
+            leftY1 = yElb - sleeveLength * math.sin(thetaPrime)
+            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
+            leftY2 = yElb + sleeveLength * math.sin(thetaPrime)
+            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
+            #upper left arm
+            leftY3 = yShould + sleeveLength * math.cos(theta)
+            leftX3 = xShould - sleeveLength * math.sin(theta)
+            leftY4 = yShould - sleeveLength * math.cos(theta)
+            leftX4 = xShould + sleeveLength * math.sin(theta)
 
+        pygame.draw.polygon(
+            self.frameSurface,
+            (0, 0, 200),
+            [(leftX1, leftY1),(leftX2, leftY2),(leftX3,leftY3),(leftX4,leftY4)]
+        )
+
+        pygame.draw.rect(
+            self.frameSurface,
+            (200, 200, 0),
+            (leftX1, leftY1, 20, 20)
+        )
+        pygame.draw.rect(
+            self.frameSurface,
+            (200, 200, 0),
+            (leftX2, leftY2, 20, 20)
+        )
+        pygame.draw.rect(
+            self.frameSurface,
+            (200, 200, 0),
+            (leftX3, leftY3, 20, 20)
+        )
+        pygame.draw.rect(
+            self.frameSurface,
+            (200, 200, 0),
+            (leftX4, leftY4, 20, 20)
+        )
     def drawBody(self):
         rightPart = (self.xRightShoulder + self.xRightHip) / 2
         leftPart = (self.xLeftShoulder + self.xLeftHip) / 2
@@ -228,6 +286,7 @@ class Game(object):
 
         self.drawBody()
         self.drawLeftArm()
+        self.drawRightArm()
 
         # changes ratio of image to output to window
         h_to_w = float(
