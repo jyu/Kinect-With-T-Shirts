@@ -69,6 +69,22 @@ class Game(object):
         del address
         target_surface.unlock()
 
+    def sensorToScreenX(self, sensorPosX):
+        screenX = (
+            sensorPosX * (self.screenWidth / 3) +
+            self.cornerToMiddleConstant +
+            self.shirtCompensationWidth
+        )
+        return screenX
+
+    def sensorToScreenY(self, sensorPosY):
+        screenY = (
+            -1 *
+            (sensorPosY - self.sensorScreenHeight / 2) *
+            (self.screenHeight / self.sensorScreenHeight)
+        )
+        return screenY
+
     def data(self, joints, type):
         ret = joints[getattr(PyKinectV2, "JointType_" + type)].Position
         return (ret.x, ret.y)
