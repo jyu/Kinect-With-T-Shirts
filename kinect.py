@@ -135,7 +135,6 @@ class Game(object):
                         joints = body.joints
                         self.updateBody(joints)
                         self.updateArms(joints)
-                        self.drawBody(joints)
                         self.drawBody()
 
 
