@@ -111,17 +111,31 @@ class Game(object):
         yElb = self.sensorToScreenY(self.yLeftElbow)
         theta = math.atan((yShould - yElb)/(xElb - xShould))
         thetaPrime = math.pi - math.pi/2 - theta
-        sleeveLength = 30
-        #lower left arm
-        leftY1 = yElb + sleeveLength * math.sin(thetaPrime)
-        leftX1 = xElb - sleeveLength * math.cos(thetaPrime)
-        leftY2 = yElb - sleeveLength * math.sin(thetaPrime)
-        leftX2 = xElb + sleeveLength * math.cos(thetaPrime)
-        #upper left arm
-        leftY3 = yShould - sleeveLength * math.cos(theta)
-        leftX3 = xShould + sleeveLength * math.sin(theta)
-        leftY4 = yShould + sleeveLength * math.cos(theta)
-        leftX4 = xShould - sleeveLength * math.sin(theta)
+        if theta < 0: yElb += 80
+        sleeveLength = 35
+        if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8:
+            #lower left arm
+            leftY1 = yElb + sleeveLength * math.sin(thetaPrime)
+            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
+            leftY2 = yElb - sleeveLength * math.sin(thetaPrime)
+            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
+            #upper left arm
+            leftY3 = yShould - sleeveLength * math.cos(theta)
+            leftX3 = xShould - sleeveLength * math.sin(theta)
+            leftY4 = yShould + sleeveLength * math.cos(theta)
+            leftX4 = xShould + sleeveLength * math.sin(theta)
+        else:
+            #lower left arm
+            leftY1 = yElb - sleeveLength * math.sin(thetaPrime)
+            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
+            leftY2 = yElb + sleeveLength * math.sin(thetaPrime)
+            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
+            #upper left arm
+            leftY3 = yShould + sleeveLength * math.cos(theta)
+            leftX3 = xShould - sleeveLength * math.sin(theta)
+            leftY4 = yShould - sleeveLength * math.cos(theta)
+            leftX4 = xShould + sleeveLength * math.sin(theta)
+
         pygame.draw.polygon(
             self.frameSurface,
             (0, 0, 200),
