@@ -103,27 +103,15 @@ class Game(object):
         self.xLeftElbow, self.yLeftElbow = self.data(joints, "ElbowLeft")
         self.xRightElbow, self.yRightElbow = self.data(joints, "ElbowRight")
 
-    def drawArms(self):
+    def drawLeftArm(self):
         #left arm
-        xShould = (
-            self.xLeftShoulder * (self.screenWidth / 3) +
-            self.cornerToMiddleConstant +
-            self.shirtCompensationWidth
-        )
+        xShould = self.sensorToScreenX(self.xLeftShoulder)
         yShould = self.sensorToScreenY(self.yLeftShoulder)
-        xElb = (
-            self.xLeftElbow * (self.screenWidth / 3) +
-            self.cornerToMiddleConstant +
-            self.shirtCompensationWidth
-        )
-        yElb = (
-            -1 *
-            (self.yLeftElbow - self.sensorScreenHeight / 2) *
-            (self.screenHeight / self.sensorScreenHeight)
-        )
+        xElb = self.sensorToScreenX(self.xLeftElbow)
+        yElb = self.sensorToScreenY(self.yLeftElbow)
         theta = math.atan((yShould - yElb)/(xElb - xShould))
         thetaPrime = math.pi - math.pi/2 - theta
-        sleeveLength = 20
+        sleeveLength = 30
         #lower left arm
         leftY1 = yElb + sleeveLength * math.sin(thetaPrime)
         leftX1 = xElb - sleeveLength * math.cos(thetaPrime)
@@ -139,11 +127,7 @@ class Game(object):
             (0, 0, 200),
             [(leftX1, leftY1),(leftX2, leftY2),(leftX3,leftY3),(leftX4,leftY4)]
         )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (xElb, yElb, 20, 20)
-        )
+
         pygame.draw.rect(
             self.frameSurface,
             (200, 200, 0),
@@ -171,26 +155,10 @@ class Game(object):
         upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
         downPart = (self.yRightHip + self.yLeftHip) / 2
         # converts sensor coords to pygame screen coords
-        bodyX1 = (
-            rightPart * (self.screenWidth / 3) +
-            self.cornerToMiddleConstant +
-            self.shirtCompensationWidth
-        )
-        bodyY1 = (
-            -1 *
-            (upPart - self.sensorScreenHeight / 2) *
-            (self.screenHeight / self.sensorScreenHeight)
-        )
-        bodyX2 = (
-            leftPart * (self.screenWidth / 3) +
-            self.cornerToMiddleConstant -
-            self.shirtCompensationWidth
-        )
-        bodyY2 = (
-            -1 *
-            (downPart - self.sensorScreenHeight / 2) *
-            (self.screenHeight / self.sensorScreenHeight)
-        )
+        bodyX1 = self.sensorToScreenX(rightPart)
+        bodyY1 = self.sensorToScreenY(upPart)
+        bodyX2 = self.sensorToScreenX(leftPart)
+        bodyY2 = self.sensorToScreenY(downPart)
 
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2) - self.shirtCompensationHeight
@@ -245,7 +213,7 @@ class Game(object):
             frame = None
 
         self.drawBody()
-        self.drawArms()
+        self.drawLeftArm()
 
         # changes ratio of image to output to window
         h_to_w = float(
