@@ -146,50 +146,50 @@ class Game(object):
             (bodyX2, bodyY1, 20, 20)
         )
 
-    def run(self):
-        while not self.done:
-            # pygame events
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.done = True
+    def runLoop(self):
+        # pygame events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return False
 
-            # reads and processes body frame from kinect
-            if self.kinect.has_new_body_frame():
-                self.bodies = self.kinect.get_last_body_frame()
+        # reads and processes body frame from kinect
+        if self.kinect.has_new_body_frame():
+            self.bodies = self.kinect.get_last_body_frame()
 
-                for i in range(self.kinect.max_body_count):
-                    body = self.bodies.bodies[i]
-                    if body.is_tracked:
-                        joints = body.joints
-                        self.updateBody(joints)
-                        self.updateArms(joints)
+            for i in range(self.kinect.max_body_count):
+                body = self.bodies.bodies[i]
+                if body.is_tracked:
+                    joints = body.joints
+                    self.updateBody(joints)
+                    self.updateArms(joints)
 
-            # reads color images from kinect
-            if self.kinect.has_new_color_frame():
-                frame = self.kinect.get_last_color_frame()
-                self.drawColorFrame(frame, self.frameSurface)
-                frame = None
+        # reads color images from kinect
+        if self.kinect.has_new_color_frame():
+            frame = self.kinect.get_last_color_frame()
+            self.drawColorFrame(frame, self.frameSurface)
+            frame = None
 
-            self.drawBody()
+        self.drawBody()
 
-            # changes ratio of image to output to window
-            h_to_w = float(
-                self.frameSurface.get_height() /
-                self.frameSurface.get_width()
-            )
-            target_height = int(h_to_w * self.screen.get_width())
-            surface_to_draw = pygame.transform.scale(
-                self.frameSurface,
-                (self.screen.get_width(), target_height)
-            )
-            self.screen.blit(surface_to_draw, (0,0))
-            surface_to_draw = None
-            pygame.display.update()
+        # changes ratio of image to output to window
+        h_to_w = float(
+            self.frameSurface.get_height() /
+            self.frameSurface.get_width()
+        )
+        target_height = int(h_to_w * self.screen.get_width())
+        surface_to_draw = pygame.transform.scale(
+            self.frameSurface,
+            (self.screen.get_width(), target_height)
+        )
+        self.screen.blit(surface_to_draw, (0,0))
+        surface_to_draw = None
+        pygame.display.update()
 
-            self.clock.tick(60)
-
-        self.kinect.close()
-        pygame.quit()
+        self.clock.tick(60)
+        return True
 
 game = Game()
-game.run()
+while game.runLoop():
+    pass
+game.kinect.close()
+pygame.quit()
