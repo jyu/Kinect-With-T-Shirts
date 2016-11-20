@@ -69,46 +69,23 @@ class Game(object):
         del address
         target_surface.unlock()
 
+    def data(self, joints, type):
+        ret = joints[getattr(PyKinectV2, "JointType_" + type)].Position
+        return (ret.x, ret.y)
+
     def updateBody(self, joints):
         # update body trackers
-        self.yLeftHip = joints[
-            PyKinectV2.JointType_HipLeft
-        ].Position.y
-        self.yRightHip = joints[
-            PyKinectV2.JointType_HipRight
-        ].Position.y
-        self.yLeftShoulder = joints[
-            PyKinectV2.JointType_ShoulderLeft
-        ].Position.y
-        self.yRightShoulder = joints[
-            PyKinectV2.JointType_ShoulderRight
-        ].Position.y
-        self.xLeftHip = joints[
-            PyKinectV2.JointType_HipLeft
-        ].Position.x
-        self.xRightHip = joints[
-            PyKinectV2.JointType_HipRight
-        ].Position.x
-        self.xLeftShoulder = joints[
-            PyKinectV2.JointType_ShoulderLeft
-        ].Position.x
-        self.xRightShoulder = joints[
-            PyKinectV2.JointType_ShoulderRight
-        ].Position.x
+        self.xLeftHip, self.yLeftHip = self.data(joints, "HipLeft")
+        self.xRightHip, self.yRightHip = self.data(joints, "HipRight")
+        (self.xLeftShoulder,
+        self.yLeftShoulder) = self.data(joints, "ShoulderLeft")
+        (self.xRightShoulder,
+        self.yRightShoulder) = self.data(joints, "ShoulderRight")
+
     def updateArms(self, joints):
-        #updates arms
-        self.xLeftElbow = joints[
-            PyKinectV2.JointType_ElbowLeft
-        ].Position.x
-        self.yLeftElbow = joints[
-            PyKinectV2.JointType_ElbowLeft
-        ].Position.y
-        self.xRightElbow = joints[
-            PyKinectV2.JointType_ElbowRight
-        ].Position.x
-        self.yRightElbow = joints[
-            PyKinectV2.JointType_ElbowRight
-        ].Position.y
+        # updates arms
+        self.xLeftElbow, self.yLeftElbow = self.data(joints, "ElbowLeft")
+        self.xRightElbow, self.yRightElbow = self.data(joints, "ElbowRight")
 
     def drawArms(self):
         sleve1 = xLeftElbow
