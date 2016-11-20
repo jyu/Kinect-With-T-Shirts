@@ -12,8 +12,8 @@ class Game(object):
     def __init__(self):
         pygame.init()
 
-        self.screen_width = 1920
-        self.screen_height = 1080
+        self.screenWidth = 1920
+        self.screenHeight = 1080
         # screen updates
         self.clock = pygame.time.Clock()
         # set the width and height of the window half of width.height
@@ -27,7 +27,7 @@ class Game(object):
                        PyKinectV2.FrameSourceTypes_Body)
 
         self.bodies = None
-        self.frame_surface = pygame.Surface(
+        self.frameSurface = pygame.Surface(
                             (self.kinect.color_frame_desc.Width,
                              self.kinect.color_frame_desc.Height),
                              0,
@@ -43,7 +43,7 @@ class Game(object):
         self.xRightHip = 0
 
 
-    def draw_color_frame(self, frame, target_surface):
+    def drawColorFrame(self, frame, target_surface):
         target_surface.lock()
         address = self.kinect.surface_as_array(target_surface.get_buffer())
         ctypes.memmove(address, frame.ctypes.data, frame.size)
@@ -64,10 +64,24 @@ class Game(object):
                             PyKinectV2.JointType_ShoulderLeft].Position.x
         self.xRightShoulder = joints[
                               PyKinectV2.JointType_ShoulderRight].Position.x
-        print(self.yLeftHip)
-        print(self.yRightHip)
-        print(self.yLeftShoulder)
-        print(self.yRightShoulder)
+
+    def drawBody(self):
+        rightPart = (self.xRightShoulder + self.xRightHip)/2
+        leftPart = (self.xLeftShoulder + self.xLeftHip)/2
+        upPart = (self.yRightShoulder + self.yLeftShoulder)/2
+        downPart = (self.yRightHip + self.yLeftHip)/2
+        bodyX1 = (rightPart + 1.2)*(self.screenWidth/2.4)
+        bodyY1 = (-1 * (upPart - 0.6))*(self.screenHeight/1.2)
+        bodyX2 = (leftPart + 1.2)*(self.screenWidth/2.4)
+        bodyY2 = (-1 * (downPart - 0.6)) * (self.screenHeight/1.2)
+
+        bodyWidth = bodyX2 - bodyX1
+        bodyHeight = -1 * (bodyY1 - bodyY2)
+
+        pygame.draw.rect(self.frameSurface,
+                     (0,200,0),
+                     (bodyX1,bodyY1,bodyWidth,bodyHeight)
+                     )
 
     def run(self):
         while not self.done:
@@ -89,14 +103,16 @@ class Game(object):
             #reads color images from kinect
             if self.kinect.has_new_color_frame():
                 frame = self.kinect.get_last_color_frame()
-                self.draw_color_frame(frame, self.frame_surface)
+                self.drawColorFrame(frame, self.frameSurface)
                 frame = None
 
+            self.drawBody()
+
             #changes ratio of image to output to window
-            h_to_w = float(self.frame_surface.get_height() /
-                           self.frame_surface.get_width())
+            h_to_w = float(self.frameSurface.get_height() /
+                           self.frameSurface.get_width())
             target_height = int(h_to_w*self.screen.get_width())
-            surface_to_draw = pygame.transform.scale(self.frame_surface,
+            surface_to_draw = pygame.transform.scale(self.frameSurface,
                                                     (self.screen.get_width(),
                                                     target_height))
             self.screen.blit(surface_to_draw, (0,0))
