@@ -44,7 +44,7 @@ class Game(object):
         self.sensorScreenHeight = 1.2
         self.sensorScreenWidth = 3
         self.cornerToMiddleConstant = 1000
-        self.shirtCompensationHeight = 30
+        self.shirtCompensationHeight = 50
         self.shirtCompensationWidth = 20
 
     def initBodyVar(self):
