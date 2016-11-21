@@ -19,15 +19,15 @@ def process(points):
 
 def main():
     pygame.init()
-    bg = pygame.image.load("tshirt1.png")
-    bgRect = bg.get_rect()
-    size = (width, height) = bg.get_size()
+    background = pygame.image.load("tshirt1.png")
+    bgRect = background.get_rect()
+    size = (width, height) = background.get_size()
     screen = pygame.display.set_mode(size)
 
     points = set()
 
     while True:
-        screen.blit(bg, bgRect)
+        screen.blit(background, bgRect)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

@@ -69,9 +69,6 @@ def main():
             elif event.key == K_d:
                 direction = (1, 0, 0, -1)
 
-            else:
-                print ("Unrecognized key")
-
         if event.type == KEYUP:
             direction = (0, 0, 0, 0)
 
