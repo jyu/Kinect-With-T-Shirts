@@ -4,19 +4,15 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-# Basics of openGL
-# Guided by
-# https://pythonprogramming.net/opengl-pyopengl-python-pygame-tutorial/
-
-verticies = (
-    (1, -1, -1),
-    (1, 1, -1),
-    (-1, 1, -1),
-    (-1, -1, -1),
-    (1, -1, 1),
-    (1, 1, 1),
-    (-1, -1, 1),
-    (-1, 1, 1)
+vertices = (
+    (.75, -1, 0.75),
+    (.75, 1, 0.75),
+    (-.75, 1, 0.75),
+    (-.75, -1, 0.75),
+    (.75, -1, 1.25),
+    (.75, 1, 1.25),
+    (-.75, -1, 1.25),
+    (-.75, 1, 1.25)
     )
 
 edges = (
@@ -39,7 +35,7 @@ def Cube():
     glBegin(GL_LINES)
     for edge in edges:
         for vertex in edge:
-            glVertex3fv(verticies[vertex])
+            glVertex3fv(vertices[vertex])
     glEnd()
 
 
@@ -49,33 +45,47 @@ def main():
     pygame.display.set_mode(display, DOUBLEBUF|OPENGL)
 
     gluPerspective(45, (display[0]/display[1]), 0.1, 50.0)
-
+    # move back to see shape
     glTranslatef(0.0,0.0, -5)
 
+    direction = (0, 0, 0, 0)
+    # ontrols to move shape
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    glTranslatef(-0.5,0,0)
-                if event.key == pygame.K_RIGHT:
-                    glTranslatef(0.5,0,0)
+        if event.type == KEYDOWN:
+            if event.key == K_RIGHT:
+                direction = (1, 0, 3, 0)
+            elif event.key == K_LEFT:
+                direction = (1, 0, -3, 0)
+            elif event.key == K_UP:
+                direction = (1, -1, 0, 0)
+            elif event.key == K_DOWN:
+                direction = (1, 1, 0, 0)
+            elif event.key == K_a:
+                direction = (1, 0, 0, 1)
+            elif event.key == K_d:
+                direction = (1, 0, 0, -1)
 
-                if event.key == pygame.K_UP:
-                    glTranslatef(0,1,0)
-                if event.key == pygame.K_DOWN:
-                    glTranslatef(0,-1,0)
+            else:
+                print ("Unrecognized key")
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    glTranslatef(0,0,1.0)
+        if event.type == KEYUP:
+            direction = (0, 0, 0, 0)
 
-                if event.button == 3:
-                    glTranslatef(0,0,-1.0)
+        glRotatef(*direction)
 
-        #glRotatef(1, 3, 1, 1)
+        #mouse translations
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                glTranslatef(0,0,1.0)
+
+            if event.button == 3:
+                glTranslatef(0,0,-1.0)
+
+
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
         Cube()
         pygame.display.flip()
