@@ -104,7 +104,7 @@ class Game(object):
         self.xRightElbow, self.yRightElbow = self.data(joints, "ElbowRight")
 
     def drawLeftArm(self):
-        #left arm
+        # left arm
         xShould = self.sensorToScreenX(self.xLeftShoulder)
         yShould = self.sensorToScreenY(self.yLeftShoulder) + 40
         xElb = self.sensorToScreenX(self.xLeftElbow)
@@ -113,28 +113,18 @@ class Game(object):
         thetaPrime = math.pi - math.pi/2 - theta
         if theta < 0: yElb += 80
         sleeveLength = 35
-        if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8:
-            #lower left arm
-            leftY1 = yElb + sleeveLength * math.sin(thetaPrime)
-            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
-            leftY2 = yElb - sleeveLength * math.sin(thetaPrime)
-            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-            #upper left arm
-            leftY3 = yShould - sleeveLength * math.cos(theta)
-            leftX3 = xShould - sleeveLength * math.sin(theta)
-            leftY4 = yShould + sleeveLength * math.cos(theta)
-            leftX4 = xShould + sleeveLength * math.sin(theta)
-        else:
-            #lower left arm
-            leftY1 = yElb - sleeveLength * math.sin(thetaPrime)
-            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
-            leftY2 = yElb + sleeveLength * math.sin(thetaPrime)
-            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-            #upper left arm
-            leftY3 = yShould + sleeveLength * math.cos(theta)
-            leftX3 = xShould - sleeveLength * math.sin(theta)
-            leftY4 = yShould - sleeveLength * math.cos(theta)
-            leftX4 = xShould + sleeveLength * math.sin(theta)
+
+        sign = 1 if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8 else -1
+        # lower left arm
+        leftY1 = yElb + sleeveLength * math.sin(thetaPrime) * sign
+        leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
+        leftY2 = yElb - sleeveLength * math.sin(thetaPrime) * sign
+        leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
+        # upper left arm
+        leftY3 = yShould - sleeveLength * math.cos(theta) * sign
+        leftX3 = xShould - sleeveLength * math.sin(theta)
+        leftY4 = yShould + sleeveLength * math.cos(theta) * sign
+        leftX4 = xShould + sleeveLength * math.sin(theta)
 
         pygame.draw.polygon(
             self.frameSurface,
@@ -163,7 +153,7 @@ class Game(object):
             (leftX4, leftY4, 20, 20)
         )
     def drawRightArm(self):
-        #left arm
+        # right arm
         xShould = self.sensorToScreenX(self.xRightShoulder)
         yShould = self.sensorToScreenY(self.yRightShoulder) + 40
         xElb = self.sensorToScreenX(self.xRightElbow)
@@ -172,28 +162,17 @@ class Game(object):
         thetaPrime = math.pi - math.pi/2 - theta
         if theta < 0: yElb += 80
         sleeveLength = 35
-        if abs(theta) < math.pi/8 or abs(theta) > math.pi*3/8:
-            #lower right arm
-            leftY1 = yElb + sleeveLength * math.sin(thetaPrime)
-            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
-            leftY2 = yElb - sleeveLength * math.sin(thetaPrime)
-            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-            #upper right arm
-            leftY3 = yShould - sleeveLength * math.cos(theta)
-            leftX3 = xShould - sleeveLength * math.sin(theta)
-            leftY4 = yShould + sleeveLength * math.cos(theta)
-            leftX4 = xShould + sleeveLength * math.sin(theta)
-        else:
-            #lower right arm
-            leftY1 = yElb - sleeveLength * math.sin(thetaPrime)
-            leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
-            leftY2 = yElb + sleeveLength * math.sin(thetaPrime)
-            leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-            #upper right arm
-            leftY3 = yShould + sleeveLength * math.cos(theta)
-            leftX3 = xShould - sleeveLength * math.sin(theta)
-            leftY4 = yShould - sleeveLength * math.cos(theta)
-            leftX4 = xShould + sleeveLength * math.sin(theta)
+        sign = 1 if abs(theta) < math.pi/8 or abs(theta) > math.pi*3/8 else -1
+        # lower right arm
+        leftY1 = yElb + sleeveLength * math.sin(thetaPrime) * sign
+        leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
+        leftY2 = yElb - sleeveLength * math.sin(thetaPrime) * sign
+        leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
+        # upper right arm
+        leftY3 = yShould - sleeveLength * math.cos(theta) * sign
+        leftX3 = xShould - sleeveLength * math.sin(theta)
+        leftY4 = yShould + sleeveLength * math.cos(theta) * sign
+        leftX4 = xShould + sleeveLength * math.sin(theta)
 
         pygame.draw.polygon(
             self.frameSurface,
