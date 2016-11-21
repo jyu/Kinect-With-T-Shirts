@@ -284,8 +284,12 @@ class Game(object):
         self.clock.tick(60)
         return True
 
+    def run(self):
+        while self.runLoop():
+            pass
+        self.kinect.close()
+        pygame.quit()
+
 game = Game()
-while game.runLoop():
-    pass
-game.kinect.close()
-pygame.quit()
+game.run()
+
