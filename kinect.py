@@ -106,7 +106,7 @@ class Game(object):
     def drawLeftArm(self):
         #left arm
         xShould = self.sensorToScreenX(self.xLeftShoulder)
-        yShould = self.sensorToScreenY(self.yLeftShoulder)
+        yShould = self.sensorToScreenY(self.yLeftShoulder) + 40
         xElb = self.sensorToScreenX(self.xLeftElbow)
         yElb = self.sensorToScreenY(self.yLeftElbow)
         theta = math.atan((yShould - yElb)/(xElb - xShould))
@@ -165,31 +165,31 @@ class Game(object):
     def drawRightArm(self):
         #left arm
         xShould = self.sensorToScreenX(self.xRightShoulder)
-        yShould = self.sensorToScreenY(self.yRightShoulder)
+        yShould = self.sensorToScreenY(self.yRightShoulder) + 40
         xElb = self.sensorToScreenX(self.xRightElbow)
         yElb = self.sensorToScreenY(self.yRightElbow)
-        theta = math.atan((yShould - yElb)/(xElb - xShould))
+        theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
         thetaPrime = math.pi - math.pi/2 - theta
         if theta < 0: yElb += 80
         sleeveLength = 35
-        if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8:
-            #lower left arm
+        if abs(theta) < math.pi/8 or abs(theta) > math.pi*3/8:
+            #lower right arm
             leftY1 = yElb + sleeveLength * math.sin(thetaPrime)
             leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
             leftY2 = yElb - sleeveLength * math.sin(thetaPrime)
             leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-            #upper left arm
+            #upper right arm
             leftY3 = yShould - sleeveLength * math.cos(theta)
             leftX3 = xShould - sleeveLength * math.sin(theta)
             leftY4 = yShould + sleeveLength * math.cos(theta)
             leftX4 = xShould + sleeveLength * math.sin(theta)
         else:
-            #lower left arm
+            #lower right arm
             leftY1 = yElb - sleeveLength * math.sin(thetaPrime)
             leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
             leftY2 = yElb + sleeveLength * math.sin(thetaPrime)
             leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-            #upper left arm
+            #upper right arm
             leftY3 = yShould + sleeveLength * math.cos(theta)
             leftX3 = xShould - sleeveLength * math.sin(theta)
             leftY4 = yShould - sleeveLength * math.cos(theta)
@@ -227,9 +227,9 @@ class Game(object):
         upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
         downPart = (self.yRightHip + self.yLeftHip) / 2
         # converts sensor coords to pygame screen coords
-        bodyX1 = self.sensorToScreenX(rightPart)
+        bodyX1 = self.sensorToScreenX(rightPart) + 20
         bodyY1 = self.sensorToScreenY(upPart)
-        bodyX2 = self.sensorToScreenX(leftPart)
+        bodyX2 = self.sensorToScreenX(leftPart) - 20
         bodyY2 = self.sensorToScreenY(downPart)
 
         bodyWidth = bodyX2 - bodyX1
