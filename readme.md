@@ -16,3 +16,10 @@ Long Term Goals:
 pygame design interface
 3d modeling
 Stronger Imports
+
+Features:
+design interface
+screenshotting
+multiple people
+
+different background
