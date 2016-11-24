@@ -43,10 +43,10 @@ class Point(object):
         )
 
 class Cube(object):
-    def __init__(self,pos,length,surface):
-        centerX = pos[0]
-        centerY = pos[1]
-        centerZ = pos[2]
+    def __init__(self,x,y,z,length,surface):
+        centerX = x
+        centerY = y
+        centerZ = z
         side = length/2
         # z dimension is half of the x and y dimensions
         zSide = length/4
@@ -70,10 +70,10 @@ class Cube(object):
 
 
     def draw(self, surface):
-        #draws points
+        # draws points
         for point in self.points:
             point.drawPoint()
-        #draws edges
+        # draws edges
         for edge in self.edges:
             point1Index, point2Index = edge[0], edge[1]
             point1 = self.points[point1Index]
