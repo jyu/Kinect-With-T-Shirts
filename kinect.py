@@ -110,7 +110,10 @@ class Game(object):
         yShould = self.sensorToScreenY(self.yLeftShoulder) + 40
         xElb = self.sensorToScreenX(self.xLeftElbow)
         yElb = self.sensorToScreenY(self.yLeftElbow)
-        theta = math.atan((yShould - yElb)/(xElb - xShould))
+        try:
+            theta = math.atan((yShould - yElb)/(xElb - xShould))
+        except:
+            theta = math.atan((yShould - yElb)/(xElb - xShould + 1))
         thetaPrime = math.pi - math.pi/2 - theta
         if theta < 0: yElb += 80
         sleeveLength = 35
@@ -159,7 +162,10 @@ class Game(object):
         yShould = self.sensorToScreenY(self.yRightShoulder) + 40
         xElb = self.sensorToScreenX(self.xRightElbow)
         yElb = self.sensorToScreenY(self.yRightElbow)
-        theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
+        try:
+            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
+        except:
+            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + 1))
         thetaPrime = math.pi - math.pi/2 - theta
         if theta < 0: yElb += 80
         sleeveLength = 35
