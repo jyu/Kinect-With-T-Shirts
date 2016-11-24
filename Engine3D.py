@@ -89,13 +89,47 @@ class Cube(object):
 
 class Model(object):
     def __init__(self, surface):
-        self.model = [Cube((0,0,0), 200, surface),
-                      Cube((300,150,0), 100, surface)]
+        self.shapes = [Cube(0, 0, 0, 200, surface),
+                      Cube(300, 150, 0, 100, surface)]
         self.surface = surface
+        self.cam = Camera(self.shapes)
 
     def draw(self):
-        for shape in self.model:
+        for shape in self.shapes:
             shape.draw(self.surface)
+
+class Camera(object):
+    def __init__(self,shapes):
+        self.shapes = shapes
+        self.dX, self.dY, self.dZ = 0, 0, 0
+        self.rotX, self.rotY = 0, 0
+
+    def keyPressed(self, key, model):
+        # moves camera and changes view of the objects
+        self.dX, self.dY, self.dZ = 0, 0, 0
+        step = 10
+        # process keypresses
+        if key[pygame.K_w]: self.dY -= step
+        if key[pygame.K_s]: self.dY += step
+        if key[pygame.K_a]: self.dX -= step
+        if key[pygame.K_d]: self.dX += step
+        if key[pygame.K_z]: self.dZ += step
+        if key[pygame.K_x]: self.dZ -= step
+
+        for shape in self.shapes:
+           for point in shape.points:
+                point.x += self.dX
+                point.y += self.dY
+                point.z += self.dZ
+                point.updateDrawCoord()
+
+
+
+
+
+
+
+
 
 
 
