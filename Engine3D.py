@@ -1,4 +1,6 @@
 import pygame
+import numpy as np
+import math
 
 # 3D engine
 
@@ -52,15 +54,15 @@ class Cube(object):
         zSide = length/4
         # points of the cube
         self.points = [
-          Point(centerX - side, centerY - side, centerZ - zSide + minZ, surface),
-          Point(centerX + side, centerY - side, centerZ - zSide + minZ, surface),
-          Point(centerX + side, centerY + side, centerZ - zSide + minZ, surface),
-          Point(centerX - side, centerY + side, centerZ - zSide + minZ, surface),
-          Point(centerX - side, centerY - side, centerZ + zSide + minZ, surface),
-          Point(centerX + side, centerY - side, centerZ + zSide + minZ, surface),
-          Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
-          Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
-          ]
+         Point(centerX - side, centerY - side, centerZ - zSide + minZ, surface),
+         Point(centerX + side, centerY - side, centerZ - zSide + minZ, surface),
+         Point(centerX + side, centerY + side, centerZ - zSide + minZ, surface),
+         Point(centerX - side, centerY + side, centerZ - zSide + minZ, surface),
+         Point(centerX - side, centerY - side, centerZ + zSide + minZ, surface),
+         Point(centerX + side, centerY - side, centerZ + zSide + minZ, surface),
+         Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
+         Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
+         ]
         # edges of the cube (point1, point2)
         self.edges = [
                 (0,1),(1,2),(2,3),(3,0),
@@ -76,8 +78,7 @@ class Cube(object):
         # draws edges
         for edge in self.edges:
             point1Index, point2Index = edge[0], edge[1]
-            point1 = self.points[point1Index]
-            point2 = self.points[point2Index]
+            point1, point2 = self.points[point1Index], self.points[point2Index]
 
             pygame.draw.line(
                 surface,
@@ -101,13 +102,13 @@ class Model(object):
 class Camera(object):
     def __init__(self,shapes):
         self.shapes = shapes
-        self.dX, self.dY, self.dZ = 0, 0, 0
-        self.rotX, self.rotY = 0, 0
 
     def keyPressed(self, key, model):
         # moves camera and changes view of the objects
         self.dX, self.dY, self.dZ = 0, 0, 0
-        step = 10
+        self.rotXY, self.rotXZ = 0,0
+        step = 5
+        radStep = .05
         # process keypresses
         if key[pygame.K_w]: self.dY -= step
         if key[pygame.K_s]: self.dY += step
