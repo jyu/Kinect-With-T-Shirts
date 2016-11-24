@@ -10,17 +10,21 @@ class Point(object):
 
     def __init__(self, x, y, z, surface):
 
-        self.x = x + surface.get_width() / 4
-        self.y = y + surface.get_height() / 4
+        self.x = x
+        self.y = y
         self.z = z
         self.surface = surface
+        self.screenHeight = surface.get_height()
 
+        # have camera the so (0,0) is the middle
+        self.camX = int(surface.get_width() / 2)
+        self.camY = int(surface.get_height() / 2)
 
     def drawPoint(self):
         # Adding Distortion for z coordinate to be drawn
         # Larger z towards center
-        x = int(self.x * (200 / self.z))
-        y = int(self.y * (200 / self.z))
+        x = int(self.x * ((self.screenHeight / 2) / self.z)) + self.camX
+        y = int(self.y * ((self.screenHeight / 2) / self.z)) + self.camY
 
         pygame.draw.circle(
             self.surface,
@@ -28,6 +32,8 @@ class Point(object):
             (x,y),
             20
         )
+
+
 
 
 

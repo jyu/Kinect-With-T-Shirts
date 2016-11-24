@@ -9,7 +9,7 @@ import _ctypes
 import sys
 import math
 
-from Engine3D import Point
+from Engine3D import *
 
 
 class GameRuntime(object):
@@ -40,10 +40,10 @@ class GameRuntime(object):
              0,
              32)
 
-        self.model = [Point(-100, -100, 100, self._frame_surface),
-                      Point(-100, 100, 100, self._frame_surface),
-                      Point(100, -100, 100, self._frame_surface),
-                      Point(100, 100, 100, self._frame_surface),
+        self.model = [Point(-100, -100, 300, self._frame_surface),
+                      Point(-100, 100, 300, self._frame_surface),
+                      Point(100, -100, 300, self._frame_surface),
+                      Point(100, 100, 300, self._frame_surface),
                       Point(-100, -100, 200, self._frame_surface),
                       Point(-100, 100, 200, self._frame_surface),
                       Point(100, -100, 200, self._frame_surface),
