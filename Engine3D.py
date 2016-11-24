@@ -11,7 +11,6 @@ minZ = 250
 class Point(object):
 
     def __init__(self, x, y, z, surface):
-
         self.x = x
         self.y = y
         self.z = z
@@ -22,17 +21,20 @@ class Point(object):
         self.cX = int(surface.get_width() / 2)
         self.cY = int(surface.get_height() / 2)
 
+        self.updateDrawCoord()
+
+    def convertTo3D(self,coord,center):
         # Adding Distortion for z coordinate to be drawn
         # Larger z towards center
-        # z best works from range 200 to 300
-        self.drawX = int(self.x * ((self.screenHeight / 2) / self.z) +
-                    self.cX)
-        self.drawY = int(self.y * ((self.screenHeight / 2) / self.z) +
-                    self.cY)
+        # z best works from range 100 to 300
+        try: return int(coord * ((self.screenHeight / 2) / self.z) + center)
+        except: return int(coord * ((self.screenHeight / 2) / (self.z+1)) + center)
 
+    def updateDrawCoord(self):
+        self.drawX = self.convertTo3D(self.x,self.cX)
+        self.drawY = self.convertTo3D(self.y,self.cY)
 
     def drawPoint(self):
-
         pygame.draw.circle(
             self.surface,
             (255,0,0),
