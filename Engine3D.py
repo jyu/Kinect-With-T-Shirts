@@ -9,17 +9,26 @@ import pygame
 class Point(object):
 
     def __init__(self, x, y, z, surface):
-        self.coords = (x,y,z)
+
+        self.x = x + surface.get_width() / 4
+        self.y = y + surface.get_height() / 4
+        self.z = z
         self.surface = surface
 
 
-    def drawPoint():
+    def drawPoint(self):
+        # Adding Distortion for z coordinate to be drawn
+        # Larger z towards center
+        x = int(self.x * (200 / self.z))
+        y = int(self.y * (200 / self.z))
+
         pygame.draw.circle(
             self.surface,
             (255,0,0),
-            self.coords,
-            radius = 20
-                        )
+            (x,y),
+            20
+        )
+
 
 
 

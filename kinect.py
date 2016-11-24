@@ -7,13 +7,18 @@ import pygame
 import sys
 import math
 
+# Kinect Runner
+
+# Guided by Kinect Workshop and FlapPyKinect
+# https://onedrive.live.com/?authkey=%21AMWDgqPgtkPzsAM&id=ED75CBDC5E4AB0FE%211096749&cid=ED75CBDC5E4AB0FE
+
 class Game(object):
     def __init__(self):
         pygame.init()
         self.initScreenVar()
         # screen updates
         self.clock = pygame.time.Clock()
-        # set the width and height of the window half of width.height
+        # set the width and height of the window to fit in screen
         self.screen = pygame.display.set_mode(
             (960, 540),
             pygame.HWSURFACE | pygame.DOUBLEBUF,
