@@ -117,29 +117,48 @@ class Camera(object):
         if key[pygame.K_z]: self.dZ += step
         if key[pygame.K_x]: self.dZ -= step
 
+
+        if key[pygame.K_o]: self.rotXY += radStep
+        if key[pygame.K_p]: self.rotXY -= radStep
+
+        if key[pygame.K_k]: self.rotXZ += radStep
+        if key[pygame.K_l]: self.rotXZ -= radStep
+
+
         for shape in self.shapes:
            for point in shape.points:
                 point.x += self.dX
                 point.y += self.dY
                 point.z += self.dZ
+                (point.x, point.y, point.z) = self.rotate(
+                    point.x, point.y, point.z,
+                    self.rotXY,
+                    "XY"
+                    )
+                (point.x, point.y, point.z) = self.rotate(
+                    point.x, point.y, point.z,
+                    self.rotXZ,
+                    "XZ"
+                    )
                 point.updateDrawCoord()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def rotate(self, x, y, z, radians, plane):
+        orig = [x, y, z]
+        c = math.cos(radians)
+        s = math.sin(radians)
+        if plane == "XY":
+            # Matrix for transformation in XY plane
+            rotMatrix = [
+                [c, -s, 0],
+                [s,  c, 0],
+                [0,  0, 1]
+                ]
+        elif plane == "XZ":
+            # Matrix for transformation in XZ plane
+            rotMatrix = [
+                [c,  0, s],
+                [0,  1, 0],
+                [-s, 0, c]
+                ]
+        return np.dot(orig,rotMatrix)
