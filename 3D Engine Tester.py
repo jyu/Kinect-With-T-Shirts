@@ -40,10 +40,7 @@ class GameRuntime(object):
              0,
              32)
 
-        self.model = Cube((0,0,0), 200, self._frame_surface)
-
-    def drawModel(self):
-        self.model.draw(self._frame_surface)
+        self.model = Model(self._frame_surface)
 
     def draw_color_frame(self, frame, target_surface):
         target_surface.lock()
@@ -75,7 +72,7 @@ class GameRuntime(object):
                 self.draw_color_frame(frame, self._frame_surface)
                 frame = None
 
-            self.drawModel()
+            self.model.draw()
 
             #changes ratio of image to output to window
             h_to_w = float(self._frame_surface.get_height() /

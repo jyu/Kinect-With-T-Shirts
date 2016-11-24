@@ -4,8 +4,6 @@ import pygame
 
 # Guided by tutorial's pseudocode
 # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-points-vectors-and-basic-concepts--gamedev-8143
-# Watched this video for more info about 3D engines
-# https://www.youtube.com/watch?v=g4E9iq0BixA
 # Customized 3D engine for my project
 
 minZ = 250
@@ -86,6 +84,17 @@ class Cube(object):
                 (point2.drawX, point2.drawY),
                 20
                 )
+
+class Model(object):
+    def __init__(self, surface):
+        self.model = [Cube((0,0,0), 200, surface),
+                      Cube((300,150,0), 100, surface)]
+        self.surface = surface
+
+    def draw(self):
+        for shape in self.model:
+            shape.draw(self.surface)
+
 
 
 
