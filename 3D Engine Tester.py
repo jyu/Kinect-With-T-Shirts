@@ -40,7 +40,9 @@ class GameRuntime(object):
              0,
              32)
 
+        #Model Code Start
         self.model = Model(self._frame_surface)
+        #Model Code End
 
     def draw_color_frame(self, frame, target_surface):
         target_surface.lock()
@@ -72,7 +74,11 @@ class GameRuntime(object):
                 self.draw_color_frame(frame, self._frame_surface)
                 frame = None
 
+            # Model Code Start
+            key = pygame.key.get_pressed()
+            self.model.cam.keyPressed(key, self.model)
             self.model.draw()
+            #Model Code End
 
             #changes ratio of image to output to window
             h_to_w = float(self._frame_surface.get_height() /
