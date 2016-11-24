@@ -40,19 +40,10 @@ class GameRuntime(object):
              0,
              32)
 
-        self.model = [Point(-100, -100, 300, self._frame_surface),
-                      Point(-100, 100, 300, self._frame_surface),
-                      Point(100, -100, 300, self._frame_surface),
-                      Point(100, 100, 300, self._frame_surface),
-                      Point(-100, -100, 200, self._frame_surface),
-                      Point(-100, 100, 200, self._frame_surface),
-                      Point(100, -100, 200, self._frame_surface),
-                      Point(100, 100, 200, self._frame_surface)
-                      ]
+        self.model = Cube((0,0,0), 200, self._frame_surface)
 
     def drawModel(self):
-        for point in self.model:
-            point.drawPoint()
+        self.model.draw(self._frame_surface)
 
     def draw_color_frame(self, frame, target_surface):
         target_surface.lock()

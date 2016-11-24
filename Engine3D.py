@@ -2,9 +2,13 @@ import pygame
 
 # 3D engine
 
-# Based on the tutorial's pseudocode
+# Guided by tutorial's pseudocode
 # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-points-vectors-and-basic-concepts--gamedev-8143
-# Expanded to include custom features
+# Watched this video for more info about 3D engines
+# https://www.youtube.com/watch?v=g4E9iq0BixA
+# Customized 3D engine for my project
+
+minZ = 250
 
 class Point(object):
 
@@ -20,18 +24,49 @@ class Point(object):
         self.camX = int(surface.get_width() / 2)
         self.camY = int(surface.get_height() / 2)
 
-    def drawPoint(self):
         # Adding Distortion for z coordinate to be drawn
         # Larger z towards center
-        x = int(self.x * ((self.screenHeight / 2) / self.z)) + self.camX
-        y = int(self.y * ((self.screenHeight / 2) / self.z)) + self.camY
+        # z best works from range 200 to 300
+        self.drawX = int(self.x * ((self.screenHeight / 2) / self.z) +
+                    self.camX)
+        self.drawY = int(self.y * ((self.screenHeight / 2) / self.z) +
+                    self.camY)
+
+
+    def drawPoint(self):
 
         pygame.draw.circle(
             self.surface,
             (255,0,0),
-            (x,y),
+            (self.drawX,self.drawY),
             20
         )
+
+class Cube(object):
+    def __init__(self,pos,length,surface):
+        centerX = pos[0]
+        centerY = pos[1]
+        centerZ = pos[2]
+        side = length/2
+        #z dimension is half of the x and y dimensions
+        zSide = length/4
+        self.points = [
+          Point(centerX - side, centerY - side, centerZ - zSide + minZ, surface),
+          Point(centerX + side, centerY - side, centerZ - zSide + minZ, surface),
+          Point(centerX + side, centerY + side, centerZ - zSide + minZ, surface),
+          Point(centerX - side, centerY + side, centerZ - zSide + minZ, surface),
+          Point(centerX - side, centerY - side, centerZ + zSide + minZ, surface),
+          Point(centerX + side, centerY - side, centerZ + zSide + minZ, surface),
+          Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
+          Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
+          ]
+
+
+    def draw(self, surface):
+        for point in self.points:
+            point.drawPoint()
+
+
 
 
 
