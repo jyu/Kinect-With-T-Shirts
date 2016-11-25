@@ -43,7 +43,8 @@ class GameRuntime(object):
         #Model Code Start
         self.model = Model(self._frame_surface,
                     [Cube(0, 0, 0, 200, self._frame_surface),
-                    Cube(300, 150, 0, 100, self._frame_surface)]
+                    Cube(300, 150, 0, 100, self._frame_surface),
+                    ]
                     )
         #Model Code End
 

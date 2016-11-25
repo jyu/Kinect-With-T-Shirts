@@ -61,21 +61,22 @@ class Cube(object):
         # Z to start shape at
         minZ = 250
         side = length/2
-        self.initPoints(centerX,centerY,centerZ,minZ,side,surface)
+        self.surface = surface
+        self.initPoints(centerX,centerY,centerZ,minZ,side)
         self.initEdges()
         self.initFaces()
 
-    def initPoints(self,centerX,centerY,centerZ,minZ,side,surface):
+    def initPoints(self,centerX,centerY,centerZ,minZ,side):
         # Points of the cube
         self.points = [
-         Point(centerX - side, centerY - side, centerZ - side, surface),
-         Point(centerX + side, centerY - side, centerZ - side, surface),
-         Point(centerX + side, centerY + side, centerZ - side, surface),
-         Point(centerX - side, centerY + side, centerZ - side, surface),
-         Point(centerX - side, centerY - side, centerZ + side, surface),
-         Point(centerX + side, centerY - side, centerZ + side, surface),
-         Point(centerX + side, centerY + side, centerZ + side, surface),
-         Point(centerX - side, centerY + side, centerZ + side, surface)
+         Point(centerX - side, centerY - side, centerZ - side, self.surface),
+         Point(centerX + side, centerY - side, centerZ - side, self.surface),
+         Point(centerX + side, centerY + side, centerZ - side, self.surface),
+         Point(centerX - side, centerY + side, centerZ - side, self.surface),
+         Point(centerX - side, centerY - side, centerZ + side, self.surface),
+         Point(centerX + side, centerY - side, centerZ + side, self.surface),
+         Point(centerX + side, centerY + side, centerZ + side, self.surface),
+         Point(centerX - side, centerY + side, centerZ + side, self.surface)
          ]
 
     def initEdges(self):
@@ -98,24 +99,24 @@ class Cube(object):
                 (0,3,7,4)
                 ]
 
-    def draw(self, surface):
+    def draw(self):
         # Draw points
         for point in self.points:
-            point.drawPoint()
+            point.draw()
         # Draw edges
         for edge in self.edges:
             point1Index, point2Index = edge[0], edge[1]
             point1, point2 = self.points[point1Index], self.points[point2Index]
             pygame.draw.line(
-                surface,
+                self.surface,
                 (255,0,0),
                 (point1.drawX, point1.drawY),
                 (point2.drawX, point2.drawY),
                 20
                 )
-        self.drawFaces(surface)
+        self.drawFaces()
 
-    def drawFaces(self,surface):
+    def drawFaces(self):
         # Draw faces
         # Sort faces first so only visible faces are shown
         indicies = self.sortFacesByZ()
@@ -126,7 +127,7 @@ class Cube(object):
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
             pygame.draw.polygon(
-            surface,
+            self.surface,
             (0, 0, 200),
             pointList
         )
@@ -160,7 +161,7 @@ class Model(object):
     def draw(self):
         # Draws all shapes
         for shape in self.shapes:
-            shape.draw(self.surface)
+            shape.draw()
 
 class Camera(object):
     # Camera controls our view of all the objects
@@ -341,7 +342,7 @@ class shirtBody(object):
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
             pygame.draw.polygon(
-            surface,
+            self.surface,
             (6, 245, 83),
             pointList
         )
