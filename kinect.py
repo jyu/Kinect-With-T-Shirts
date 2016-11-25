@@ -111,6 +111,25 @@ class Game(object):
         self.yLeftShoulder) = self.data(joints, "ShoulderLeft")
         (self.xRightShoulder,
         self.yRightShoulder) = self.data(joints, "ShoulderRight")
+        self.updateBodyVars()
+
+    def updateBodyVars(self):
+        rightPart = (self.xRightShoulder + self.xRightHip) / 2
+        leftPart = (self.xLeftShoulder + self.xLeftHip) / 2
+        upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
+        downPart = (self.yRightHip + self.yLeftHip) / 2
+        # converts sensor coords to pygame screen coords
+        bodyX1 = self.sensorToScreenX(rightPart) + 20
+        bodyY1 = self.sensorToScreenY(upPart)
+        bodyX2 = self.sensorToScreenX(leftPart) - 20
+        bodyY2 = self.sensorToScreenY(downPart)
+
+        bodyCenterX = (bodyX1 + bodyX2) / 2
+        bodyCenterY = (bodyY1 + bodyY2) / 2
+        bodyWidth = bodyX2 - bodyX1
+        bodyHeight = -1 * (bodyY1 - bodyY2) - self.shirtCompensationHeight
+        self.model.shapes[0].update(bodyCenterX,bodyCenterY,bodyWidth,bodyHeight)
+        print(bodyCenterX, bodyCenterY)
 
     def updateArms(self, joints):
         # updates arms
