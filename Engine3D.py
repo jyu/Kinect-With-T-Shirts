@@ -147,6 +147,11 @@ class Camera(object):
         orig = [x, y, z]
         c = math.cos(radians)
         s = math.sin(radians)
+
+        # Rotation Matrices info is from:
+        # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-linear-transformations--gamedev-7716
+        # https://en.wikipedia.org/wiki/Rotation_matrix
+
         if plane == "XY":
             # Matrix for transformation in XY plane
             rotMatrix = [
