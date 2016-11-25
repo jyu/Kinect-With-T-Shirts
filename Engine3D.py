@@ -149,49 +149,6 @@ class Cube(object):
             zSortedIndices.insert(index, faceIndex)
         return zSortedIndices
 
-class Body(object):
-    def __init__(self,x,y,z,length,surface):
-        centerX = x
-        centerY = y
-        centerZ = z
-        side = length/2
-        # z dimension is half of the x and y dimensions
-        zSide = length/4
-        # points of the cube
-        self.points = [
-         Point(centerX - side, centerY - side, centerZ - zSide + minZ, surface),
-         Point(centerX + side, centerY - side, centerZ - zSide + minZ, surface),
-         Point(centerX + side, centerY + side, centerZ - zSide + minZ, surface),
-         Point(centerX - side, centerY + side, centerZ - zSide + minZ, surface),
-         Point(centerX - side, centerY - side, centerZ + zSide + minZ, surface),
-         Point(centerX + side, centerY - side, centerZ + zSide + minZ, surface),
-         Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
-         Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
-         ]
-        # edges of the cube (point1, point2)
-        self.edges = [
-                (0,1),(1,2),(2,3),(3,0),
-                (4,5),(5,6),(6,7),(7,4),
-                (0,4),(1,5),(2,6),(3,7)
-                ]
-
-        def draw(self, surface):
-            # draws points
-            for point in self.points:
-                point.drawPoint()
-            # draws edges
-            for edge in self.edges:
-                point1Index, point2Index = edge[0], edge[1]
-                point1, point2 = self.points[point1Index], self.points[point2Index]
-
-                pygame.draw.line(
-                    surface,
-                    (255,0,0),
-                    (point1.drawX, point1.drawY),
-                    (point2.drawX, point2.drawY),
-                    20
-                    )
-
 class Model(object):
     def __init__(self, surface):
         self.shapes = [Cube(0, 0, 0, 200, surface),
