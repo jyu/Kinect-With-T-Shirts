@@ -9,6 +9,8 @@ multiple people
 styling variables
 better T shirt
 
+REMOVE TESTING KEYPRESSES
+
 add basic opencv
 add basic blender
 
