@@ -88,6 +88,32 @@ class Cube(object):
                 20
                 )
 
+class Body(object):
+    def __init__(self,x,y,z,length,surface):
+        centerX = x
+        centerY = y
+        centerZ = z
+        side = length/2
+        # z dimension is half of the x and y dimensions
+        zSide = length/4
+        # points of the cube
+        self.points = [
+         Point(centerX - side, centerY - side, centerZ - zSide + minZ, surface),
+         Point(centerX + side, centerY - side, centerZ - zSide + minZ, surface),
+         Point(centerX + side, centerY + side, centerZ - zSide + minZ, surface),
+         Point(centerX - side, centerY + side, centerZ - zSide + minZ, surface),
+         Point(centerX - side, centerY - side, centerZ + zSide + minZ, surface),
+         Point(centerX + side, centerY - side, centerZ + zSide + minZ, surface),
+         Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
+         Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
+         ]
+        # edges of the cube (point1, point2)
+        self.edges = [
+                (0,1),(1,2),(2,3),(3,0),
+                (4,5),(5,6),(6,7),(7,4),
+                (0,4),(1,5),(2,6),(3,7)
+                ]
+
 class Model(object):
     def __init__(self, surface):
         self.shapes = [Cube(0, 0, 0, 200, surface),

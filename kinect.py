@@ -7,6 +7,8 @@ import pygame
 import sys
 import math
 
+from Engine3D import *
+
 # Kinect Runner
 
 # Guided by Kinect Workshop and FlapPyKinect
@@ -41,6 +43,8 @@ class Game(object):
             32
         )
         self.initBodyVar()
+
+        self.model = None
 
     def initScreenVar(self):
         # screen variables
