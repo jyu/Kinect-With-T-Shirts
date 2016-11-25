@@ -26,18 +26,20 @@ class Point(object):
         self.cY = int(surface.get_height() / 2)
 
         # Intialize the coords where point is going to be drawn
-        self.drawX, self.drawY = 0,0
+        self.drawX, self.drawY, self.drawZ = 0,0,0
         self.updateDrawCoord()
 
     def convertTo3D(self,coord,center):
         # Adding Distortion for z coordinate to be drawn
         # Larger z towards center
-        try: return int(coord * ((self.screenHeight / 2) / self.z) + center)
+        try: return int(coord * ((self.screenHeight / 2) / self.drawZ) + center)
         except:
-            return int(coord * ((self.screenHeight / 2) / (self.z+1)) + center)
+            return int(coord * ((self.screenHeight / 2) / (self.drawZ+1)) + center)
 
     def updateDrawCoord(self):
         # Updates draw positions based on changes in position of the point
+        startZ = 250
+        self.drawZ = self.z + startZ
         self.drawX = self.convertTo3D(self.x,self.cX)
         self.drawY = self.convertTo3D(self.y,self.cY)
 
@@ -68,14 +70,14 @@ class Cube(object):
     def initPoints(self,centerX,centerY,centerZ,minZ,side,zSide,surface):
         # Points of the cube
         self.points = [
-         Point(centerX - side, centerY - side, centerZ - zSide + minZ, surface),
-         Point(centerX + side, centerY - side, centerZ - zSide + minZ, surface),
-         Point(centerX + side, centerY + side, centerZ - zSide + minZ, surface),
-         Point(centerX - side, centerY + side, centerZ - zSide + minZ, surface),
-         Point(centerX - side, centerY - side, centerZ + zSide + minZ, surface),
-         Point(centerX + side, centerY - side, centerZ + zSide + minZ, surface),
-         Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
-         Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
+         Point(centerX - side, centerY - side, centerZ - zSide, surface),
+         Point(centerX + side, centerY - side, centerZ - zSide, surface),
+         Point(centerX + side, centerY + side, centerZ - zSide, surface),
+         Point(centerX - side, centerY + side, centerZ - zSide, surface),
+         Point(centerX - side, centerY - side, centerZ + zSide, surface),
+         Point(centerX + side, centerY - side, centerZ + zSide, surface),
+         Point(centerX + side, centerY + side, centerZ + zSide, surface),
+         Point(centerX - side, centerY + side, centerZ + zSide, surface)
          ]
 
     def initEdges(self):
