@@ -272,6 +272,8 @@ class Game(object):
                     joints = body.joints
                     self.updateBody(joints)
                     self.updateArms(joints)
+                    self.model = Model(self.frameSurface)
+
 
         # reads color images from kinect
         if self.kinect.has_new_color_frame():
@@ -279,7 +281,7 @@ class Game(object):
             self.drawColorFrame(frame, self.frameSurface)
             frame = None
 
-        self.drawBody()
+        if not (self.model == None): self.model.draw()
         self.drawLeftArm()
         self.drawRightArm()
 
