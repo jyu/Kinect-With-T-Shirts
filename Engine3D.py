@@ -9,39 +9,40 @@ import bisect
 # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-points-vectors-and-basic-concepts--gamedev-8143
 # Additional info about 3D engines from:
 # https://www.youtube.com/watch?v=g4E9iq0BixA
-
 #Customized 3D engine for my project
-
-minZ = 250
 
 class Point(object):
 
     def __init__(self, x, y, z, surface):
+        # Position coords
         self.x = x
         self.y = y
         self.z = z
         self.surface = surface
         self.screenHeight = surface.get_height()
 
-        # have (0,0) point be in the middle
+        # Have (0,0) point be in the middle
         self.cX = int(surface.get_width() / 2)
         self.cY = int(surface.get_height() / 2)
 
+        # Intialize the coords where point is going to be drawn
+        self.drawX, self.drawY = 0,0
         self.updateDrawCoord()
 
     def convertTo3D(self,coord,center):
         # Adding Distortion for z coordinate to be drawn
         # Larger z towards center
-        # z best works from range 100 to 300
         try: return int(coord * ((self.screenHeight / 2) / self.z) + center)
         except:
             return int(coord * ((self.screenHeight / 2) / (self.z+1)) + center)
 
     def updateDrawCoord(self):
+        # Updates draw positions based on changes in position of the point
         self.drawX = self.convertTo3D(self.x,self.cX)
         self.drawY = self.convertTo3D(self.y,self.cY)
 
     def drawPoint(self):
+        # Draws Circle at the point
         pygame.draw.circle(
             self.surface,
             (255,0,0),
@@ -54,6 +55,8 @@ class Cube(object):
         centerX = x
         centerY = y
         centerZ = z
+        # Z to start shape at
+        minZ = 250
         side = length/2
         # z dimension is half of the x and y dimensions
         zSide = length/4
@@ -213,7 +216,6 @@ class Camera(object):
 
         if key[pygame.K_k]: self.rotXZ += radStep
         if key[pygame.K_l]: self.rotXZ -= radStep
-
 
         for shape in self.shapes:
            for point in shape.points:
