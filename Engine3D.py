@@ -114,6 +114,23 @@ class Body(object):
                 (0,4),(1,5),(2,6),(3,7)
                 ]
 
+        def draw(self, surface):
+            # draws points
+            for point in self.points:
+                point.drawPoint()
+            # draws edges
+            for edge in self.edges:
+                point1Index, point2Index = edge[0], edge[1]
+                point1, point2 = self.points[point1Index], self.points[point2Index]
+
+                pygame.draw.line(
+                    surface,
+                    (255,0,0),
+                    (point1.drawX, point1.drawY),
+                    (point2.drawX, point2.drawY),
+                    20
+                    )
+
 class Model(object):
     def __init__(self, surface):
         self.shapes = [Cube(0, 0, 0, 200, surface),
