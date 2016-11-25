@@ -1,12 +1,16 @@
 import pygame
 import numpy as np
 import math
+import bisect
 
 # 3D engine
 
-# Guided by tutorial's pseudocode
+# Guided by pseudocode from this tutorial:
 # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-points-vectors-and-basic-concepts--gamedev-8143
-# Customized 3D engine for my project
+# Additional info about 3D engines from:
+# https://www.youtube.com/watch?v=g4E9iq0BixA
+
+#Customized 3D engine for my project
 
 minZ = 250
 
@@ -30,7 +34,8 @@ class Point(object):
         # Larger z towards center
         # z best works from range 100 to 300
         try: return int(coord * ((self.screenHeight / 2) / self.z) + center)
-        except: return int(coord * ((self.screenHeight / 2) / (self.z+1)) + center)
+        except:
+            return int(coord * ((self.screenHeight / 2) / (self.z+1)) + center)
 
     def updateDrawCoord(self):
         self.drawX = self.convertTo3D(self.x,self.cX)
