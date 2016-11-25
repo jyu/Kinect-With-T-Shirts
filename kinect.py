@@ -124,8 +124,8 @@ class Game(object):
         bodyX2 = self.sensorToScreenX(leftPart) - 20
         bodyY2 = self.sensorToScreenY(downPart)
 
-        bodyCenterX = (bodyX1 + bodyX2) / 2
-        bodyCenterY = (bodyY1 + bodyY2) / 2
+        bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
+        bodyCenterY = ((bodyY1 + bodyY2) / 2) - 540
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2) - self.shirtCompensationHeight
         self.model.shapes[0].update(bodyCenterX,bodyCenterY,bodyWidth,bodyHeight)

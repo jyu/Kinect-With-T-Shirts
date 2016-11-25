@@ -13,13 +13,19 @@ import bisect
 
 class Point(object):
 
-    def __init__(self, x, y, z, surface):
+    def __init__(self, x, y, z, surface, view=None):
+        if view==None: view = [0,0,600]
         # Position coords
         self.x = x
         self.y = y
         self.z = z
         self.surface = surface
         self.screenHeight = surface.get_height()
+
+        # View coords
+        self.xView = view[0]
+        self.yView = view[1]
+        self.zView = view[2]
 
         # Have (0,0) point be in the middle
         self.cX = int(surface.get_width() / 2)
@@ -36,14 +42,18 @@ class Point(object):
         except:
             return int(coord * ((self.screenHeight / 2) / (self.drawZ+1)) + center)
 
+    def updateViewCoord(self, newXView, newYView, newZView):
+        self.xView = newXView
+        self.yView = newYView
+        self.zView = newZView
+
     def updateDrawCoord(self):
         # Updates draw positions based on changes in position of the point
-        startZ = 600 #250 for cube demo
-        self.drawZ = self.z + startZ
-        self.drawX = self.convertTo3D(self.x,self.cX)
-        self.drawY = self.convertTo3D(self.y,self.cY)
+        self.drawZ = self.z + self.zView
+        self.drawX = self.convertTo3D(self.x,self.cX) + self.xView
+        self.drawY = self.convertTo3D(self.y,self.cY) + self.yView
 
-    def drawPoint(self):
+    def draw(self):
         # Draws Circle at the point
         pygame.draw.circle(
             self.surface,
@@ -299,39 +309,38 @@ class shirtBody(object):
 
     def update(self, centerX, centerY, width, height):
         xSide, ySide = width/2, height/2
-        centerZ = 0
-        centerX = 0
-        centerY = 0
+        view = (int(centerX), int(centerY), 600)
+        print(view)
         self.points = [
-         Point(centerX - xSide, centerY - ySide, centerZ - self.zSide, self.surface),
-         Point(centerX + xSide, centerY - ySide, centerZ - self.zSide, self.surface),
-         Point(centerX + xSide, centerY + ySide, centerZ - self.zSide, self.surface),
-         Point(centerX - xSide, centerY + ySide, centerZ - self.zSide, self.surface),
-         Point(centerX - xSide, centerY - ySide, centerZ + self.zSide, self.surface),
-         Point(centerX + xSide, centerY - ySide, centerZ + self.zSide, self.surface),
-         Point(centerX + xSide, centerY + ySide, centerZ + self.zSide, self.surface),
-         Point(centerX - xSide, centerY + ySide, centerZ + self.zSide, self.surface)
+         Point(0 - xSide, 0 - ySide, 0 - self.zSide, self.surface, view),
+         Point(0 + xSide, 0 - ySide, 0 - self.zSide, self.surface, view),
+         Point(0 + xSide, 0 + ySide, 0 - self.zSide, self.surface, view),
+         Point(0 - xSide, 0 + ySide, 0 - self.zSide, self.surface, view),
+         Point(0 - xSide, 0 - ySide, 0 + self.zSide, self.surface, view),
+         Point(0 + xSide, 0 - ySide, 0 + self.zSide, self.surface, view),
+         Point(0 + xSide, 0 + ySide, 0 + self.zSide, self.surface, view),
+         Point(0 - xSide, 0 + ySide, 0 + self.zSide, self.surface, view)
          ]
 
 
-    def draw(self, surface):
+    def draw(self):
         # Draw points
         for point in self.points:
-            point.drawPoint()
+            point.draw()
         # Draw edges
         for edge in self.edges:
             point1Index, point2Index = edge[0], edge[1]
             point1, point2 = self.points[point1Index], self.points[point2Index]
             pygame.draw.line(
-                surface,
+                self.surface,
                 (255,0,0),
                 (point1.drawX, point1.drawY),
                 (point2.drawX, point2.drawY),
                 20
                 )
-        self.drawFaces(surface)
+        self.drawFaces()
 
-    def drawFaces(self,surface):
+    def drawFaces(self):
         # Draw faces
         # Sort faces first so only visible faces are shown
         indicies = self.sortFacesByZ()
