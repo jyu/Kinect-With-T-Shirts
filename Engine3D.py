@@ -52,15 +52,21 @@ class Point(object):
 
 class Cube(object):
     def __init__(self,x,y,z,length,surface):
+        # Position of cube
         centerX = x
         centerY = y
         centerZ = z
         # Z to start shape at
         minZ = 250
         side = length/2
-        # z dimension is half of the x and y dimensions
+        # Z dimension is half of the x and y dimensions
         zSide = length/4
-        # points of the cube
+        self.initPoints(centerX,centerY,centerZ,minZ,side,zSide,surface)
+        self.initEdges()
+        self.initFaces()
+
+    def initPoints(self,centerX,centerY,centerZ,minZ,side,zSide,surface):
+        # Points of the cube
         self.points = [
          Point(centerX - side, centerY - side, centerZ - zSide + minZ, surface),
          Point(centerX + side, centerY - side, centerZ - zSide + minZ, surface),
@@ -71,14 +77,18 @@ class Cube(object):
          Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
          Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
          ]
-        # edges of the cube (point1 index, point2 index)
+
+    def initEdges(self):
+        # Edges of the cube in the form (point1 index, point2 index)
         self.edges = [
                 (0,1),(1,2),(2,3),(3,0),
                 (4,5),(5,6),(6,7),(7,4),
                 (0,4),(1,5),(2,6),(3,7)
                 ]
-        # faces of the cube (point1 index, point2 index, point3 index,
-        # point4 index)
+
+    def initFaces(self):
+        # Faces of the cube in the form (point1 index, point2 index,
+        # point3 index, point4 index)
         self.faces = [
                 (0,1,2,3),
                 (4,5,6,7),
