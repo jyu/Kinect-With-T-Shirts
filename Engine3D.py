@@ -9,7 +9,7 @@ import bisect
 # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-points-vectors-and-basic-concepts--gamedev-8143
 # Additional info about 3D engines from:
 # https://www.youtube.com/watch?v=g4E9iq0BixA
-#Customized 3D engine for my project
+# Customized 3D engine for my project
 
 class Point(object):
 
@@ -38,7 +38,7 @@ class Point(object):
 
     def updateDrawCoord(self):
         # Updates draw positions based on changes in position of the point
-        startZ = 250
+        startZ = 600 #250 for cube demo
         self.drawZ = self.z + startZ
         self.drawX = self.convertTo3D(self.x,self.cX)
         self.drawY = self.convertTo3D(self.y,self.cY)
@@ -61,23 +61,21 @@ class Cube(object):
         # Z to start shape at
         minZ = 250
         side = length/2
-        # Z dimension is half of the x and y dimensions
-        zSide = length/4
-        self.initPoints(centerX,centerY,centerZ,minZ,side,zSide,surface)
+        self.initPoints(centerX,centerY,centerZ,minZ,side,surface)
         self.initEdges()
         self.initFaces()
 
-    def initPoints(self,centerX,centerY,centerZ,minZ,side,zSide,surface):
+    def initPoints(self,centerX,centerY,centerZ,minZ,side,surface):
         # Points of the cube
         self.points = [
-         Point(centerX - side, centerY - side, centerZ - zSide, surface),
-         Point(centerX + side, centerY - side, centerZ - zSide, surface),
-         Point(centerX + side, centerY + side, centerZ - zSide, surface),
-         Point(centerX - side, centerY + side, centerZ - zSide, surface),
-         Point(centerX - side, centerY - side, centerZ + zSide, surface),
-         Point(centerX + side, centerY - side, centerZ + zSide, surface),
-         Point(centerX + side, centerY + side, centerZ + zSide, surface),
-         Point(centerX - side, centerY + side, centerZ + zSide, surface)
+         Point(centerX - side, centerY - side, centerZ - side, surface),
+         Point(centerX + side, centerY - side, centerZ - side, surface),
+         Point(centerX + side, centerY + side, centerZ - side, surface),
+         Point(centerX - side, centerY + side, centerZ - side, surface),
+         Point(centerX - side, centerY - side, centerZ + side, surface),
+         Point(centerX + side, centerY - side, centerZ + side, surface),
+         Point(centerX + side, centerY + side, centerZ + side, surface),
+         Point(centerX - side, centerY + side, centerZ + side, surface)
          ]
 
     def initEdges(self):

@@ -44,7 +44,11 @@ class Game(object):
         )
         self.initBodyVar()
 
-        self.model = None
+        self.model = Model(
+                        self.frameSurface,
+                        [
+                        shirtBody(0, 0, 0, self.frameSurface),
+                        ])
 
     def initScreenVar(self):
         # screen variables
@@ -272,7 +276,7 @@ class Game(object):
                     joints = body.joints
                     self.updateBody(joints)
                     self.updateArms(joints)
-                    self.model = Model(self.frameSurface)
+
 
 
         # reads color images from kinect
@@ -281,7 +285,7 @@ class Game(object):
             self.drawColorFrame(frame, self.frameSurface)
             frame = None
 
-        if not (self.model == None): self.model.draw()
+        self.model.draw()
         self.drawLeftArm()
         self.drawRightArm()
 
