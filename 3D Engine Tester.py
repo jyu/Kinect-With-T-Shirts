@@ -76,7 +76,8 @@ class GameRuntime(object):
 
             # Model Code Start
             key = pygame.key.get_pressed()
-            self.model.cam.keyPressed(key, self.model)
+            if sum(key) > 0:
+                self.model.cam.keyPressed(key, self.model)
             self.model.draw()
             #Model Code End
 
