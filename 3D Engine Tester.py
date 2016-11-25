@@ -41,7 +41,10 @@ class GameRuntime(object):
              32)
 
         #Model Code Start
-        self.model = Model(self._frame_surface)
+        self.model = Model(self._frame_surface,
+                    [Cube(0, 0, 0, 200, self._frame_surface),
+                    Cube(300, 150, 0, 100, self._frame_surface)]
+                    )
         #Model Code End
 
     def draw_color_frame(self, frame, target_surface):

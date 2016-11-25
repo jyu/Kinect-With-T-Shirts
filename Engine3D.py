@@ -152,9 +152,8 @@ class Cube(object):
 class Model(object):
     # Model is the 3D model that holds all the different 3D shapes and camera
     # Overall "runner" of 3D engine
-    def __init__(self, surface):
-        self.shapes = [Cube(0, 0, 0, 200, surface),
-                      Cube(300, 150, 0, 100, surface)]
+    def __init__(self, surface, shapes):
+        self.shapes = shapes
         self.surface = surface
         self.cam = Camera(self.shapes)
 
