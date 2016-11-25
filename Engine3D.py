@@ -150,6 +150,8 @@ class Cube(object):
         return zSortedIndices
 
 class Model(object):
+    # Model is the 3D model that holds all the different 3D shapes and camera
+    # Overall "runner" of 3D engine
     def __init__(self, surface):
         self.shapes = [Cube(0, 0, 0, 200, surface),
                       Cube(300, 150, 0, 100, surface)]
@@ -157,20 +159,22 @@ class Model(object):
         self.cam = Camera(self.shapes)
 
     def draw(self):
+        # Draws all shapes
         for shape in self.shapes:
             shape.draw(self.surface)
 
 class Camera(object):
+    # Camera controls our view of all the objects
     def __init__(self,shapes):
         self.shapes = shapes
 
     def keyPressed(self, key, model):
-        # moves camera and changes view of the objects
+        # Moves camera and changes view by keys
         self.dX, self.dY, self.dZ = 0, 0, 0
-        self.rotXY, self.rotXZ = 0,0
+        self.rotXY, self.rotXZ, self.rotYZ = 0,0,0
         step = 5
         radStep = .05
-        # process keypresses
+        # Process keypresses for the x,y,z direction
         if key[pygame.K_w]: self.dY -= step
         if key[pygame.K_s]: self.dY += step
         if key[pygame.K_a]: self.dX -= step
