@@ -68,23 +68,31 @@ class Cube(object):
          Point(centerX + side, centerY + side, centerZ + zSide + minZ, surface),
          Point(centerX - side, centerY + side, centerZ + zSide + minZ, surface)
          ]
-        # edges of the cube (point1, point2)
+        # edges of the cube (point1 index, point2 index)
         self.edges = [
                 (0,1),(1,2),(2,3),(3,0),
                 (4,5),(5,6),(6,7),(7,4),
                 (0,4),(1,5),(2,6),(3,7)
                 ]
-
+        # faces of the cube (point1 index, point2 index, point3 index,
+        # point4 index)
+        self.faces = [
+                (0,1,2,3),
+                (4,5,6,7),
+                (2,3,7,6),
+                (0,1,5,4),
+                (1,2,6,5),
+                (0,3,7,4)
+                ]
 
     def draw(self, surface):
-        # draws points
+        # Draw points
         for point in self.points:
             point.drawPoint()
-        # draws edges
+        # Draw edges
         for edge in self.edges:
             point1Index, point2Index = edge[0], edge[1]
             point1, point2 = self.points[point1Index], self.points[point2Index]
-
             pygame.draw.line(
                 surface,
                 (255,0,0),
@@ -92,6 +100,41 @@ class Cube(object):
                 (point2.drawX, point2.drawY),
                 20
                 )
+        self.drawFaces(surface)
+
+    def drawFaces(self,surface):
+        # Draw faces
+        # Sort faces first so only visible faces are shown
+        indicies = self.sortFacesByZ()
+        for faceIndex in indicies:
+            face = self.faces[faceIndex]
+            pointList = []
+            for pointIndex in face:
+                point = self.points[pointIndex]
+                pointList.append((point.drawX, point.drawY))
+            pygame.draw.polygon(
+            surface,
+            (0, 0, 200),
+            pointList
+        )
+
+
+    def sortFacesByZ(self):
+        # Sort the faces by their average Z value
+        # High Z values are at the front, low z values at the back
+        zValues = []
+        zSortedIndices = []
+        for faceIndex in range(len(self.faces)):
+            face = self.faces[faceIndex]
+            point1,point2 = self.points[face[0]],self.points[face[1]]
+            point3,point4 = self.points[face[2]],self.points[face[3]]
+            faceZ = (point1.z + point2.z + point3.z + point4.z) / 4
+            # Use bisect to determine where to place the new value of Z
+            index = bisect.bisect(zValues, faceZ)
+            # Place value and index to corresponding list
+            zValues.insert(index, faceZ)
+            zSortedIndices.insert(index, faceIndex)
+        return zSortedIndices
 
 class Body(object):
     def __init__(self,x,y,z,length,surface):
@@ -164,7 +207,6 @@ class Camera(object):
         if key[pygame.K_d]: self.dX += step
         if key[pygame.K_z]: self.dZ += step
         if key[pygame.K_x]: self.dZ -= step
-
 
         if key[pygame.K_o]: self.rotXY += radStep
         if key[pygame.K_p]: self.rotXY -= radStep
