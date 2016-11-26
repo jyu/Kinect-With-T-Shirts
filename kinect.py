@@ -68,6 +68,8 @@ class Game(object):
         self.yRightHip = 0
         self.xLeftShoulder = 0
         self.xRightShoulder = 0
+        self.zRightShoulder = 0
+        self.zLeftShoulder = 0
         self.xLeftHip = 0
         self.xRightHip = 0
         self.xLeftElbow = 1
@@ -99,8 +101,9 @@ class Game(object):
         )
         return screenY
 
-    def data(self, joints, type):
+    def data(self, joints, type, z=False):
         ret = joints[getattr(PyKinectV2, "JointType_" + type)].Position
+        if z: return (ret.x,ret.y,ret.z)
         return (ret.x, ret.y)
 
     def updateBody(self, joints):
@@ -108,12 +111,16 @@ class Game(object):
         self.xLeftHip, self.yLeftHip = self.data(joints, "HipLeft")
         self.xRightHip, self.yRightHip = self.data(joints, "HipRight")
         (self.xLeftShoulder,
-        self.yLeftShoulder) = self.data(joints, "ShoulderLeft")
+        self.yLeftShoulder,
+        self.zLeftShoulder) = self.data(joints, "ShoulderLeft", True)
         (self.xRightShoulder,
-        self.yRightShoulder) = self.data(joints, "ShoulderRight")
+        self.yRightShoulder,
+        self.zRightShoulder) = self.data(joints, "ShoulderRight", True)
+
         self.updateBodyVars()
 
     def updateBodyVars(self):
+        # XYZ movement calculations
         rightPart = (self.xRightShoulder + self.xRightHip) / 2
         leftPart = (self.xLeftShoulder + self.xLeftHip) / 2
         upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
@@ -122,14 +129,28 @@ class Game(object):
         bodyX1 = self.sensorToScreenX(rightPart) + 20
         bodyY1 = self.sensorToScreenY(upPart)
         bodyX2 = self.sensorToScreenX(leftPart) - 20
-        bodyY2 = self.sensorToScreenY(downPart)
+        bodyY2 = self.sensorToScreenY(downPart) - self.shirtCompensationHeight
 
         bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
         bodyCenterY = ((bodyY1 + bodyY2) / 2) - 540
         bodyWidth = bodyX2 - bodyX1
-        bodyHeight = -1 * (bodyY1 - bodyY2) - self.shirtCompensationHeight
-        self.model.shapes[0].update(bodyCenterX,bodyCenterY,bodyWidth,bodyHeight)
-        print(bodyCenterX, bodyCenterY)
+        bodyHeight = -1 * (bodyY1 - bodyY2)
+
+        # Rotation calculations
+        angleXZ = self.getAngleXZ()
+        print(angleXZ)
+
+        # Update body shape in model
+        self.model.shapes[0].update(bodyCenterX,bodyCenterY,
+                                    bodyWidth,bodyHeight,
+                                    angleXZ)
+
+    def getAngleXZ(self):
+        # Compares shoulder width difference and depth differences to get angle
+        # Convert to degrees for debugging and testing readibility
+        return (math.atan2(self.zRightShoulder - self.zLeftShoulder,
+                          self.xRightShoulder - self.xLeftShoulder)
+                           * 180.0/math.pi)
 
     def updateArms(self, joints):
         # updates arms

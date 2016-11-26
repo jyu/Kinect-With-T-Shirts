@@ -307,21 +307,73 @@ class shirtBody(object):
                 (0,3,7,4)
                 ]
 
-    def update(self, centerX, centerY, width, height):
+    def update(self, centerX, centerY, width, height, angleXZ):
+        # Process rotation
+        angleXZ *= math.pi/180.0
+
         xSide, ySide = width/2, height/2
         view = (int(centerX), int(centerY), 600)
-        print(view)
-        self.points = [
-         Point(0 - xSide, 0 - ySide, 0 - self.zSide, self.surface, view),
-         Point(0 + xSide, 0 - ySide, 0 - self.zSide, self.surface, view),
-         Point(0 + xSide, 0 + ySide, 0 - self.zSide, self.surface, view),
-         Point(0 - xSide, 0 + ySide, 0 - self.zSide, self.surface, view),
-         Point(0 - xSide, 0 - ySide, 0 + self.zSide, self.surface, view),
-         Point(0 + xSide, 0 - ySide, 0 + self.zSide, self.surface, view),
-         Point(0 + xSide, 0 + ySide, 0 + self.zSide, self.surface, view),
-         Point(0 - xSide, 0 + ySide, 0 + self.zSide, self.surface, view)
-         ]
+        # self.points = [
+        #  Point(x - xSide, y - ySide, z - self.zSide, self.surface, view),
+        #  Point(x + xSide, y - ySide, z - self.zSide, self.surface, view),
+        #  Point(x + xSide, y + ySide, z - self.zSide, self.surface, view),
+        #  Point(x - xSide, y + ySide, z - self.zSide, self.surface, view),
+        #  Point(x - xSide, y - ySide, z + self.zSide, self.surface, view),
+        #  Point(x + xSide, y - ySide, z + self.zSide, self.surface, view),
+        #  Point(x + xSide, y + ySide, z + self.zSide, self.surface, view),
+        #  Point(x - xSide, y + ySide, z + self.zSide, self.surface, view)
+        #  ]
 
+        XYOperations = [(-1,-1),(1,-1),(1,1),(-1,1)]
+
+        self.points = []
+         # Goes through all operations for points
+        count = 0
+        for zOp in [-1,1]:
+            for xyOp in XYOperations:
+                x = xyOp[0] * xSide
+                y = xyOp[1] * ySide
+                z = zOp * self.zSide
+                x, y, z = self.rotate(
+                              x, y, z,
+                              angleXZ,
+                              "XZ"
+                              )
+                count += 1
+                print(x,y,z, count)
+                self.points.append(Point(x, y, z, self.surface, view))
+
+    def rotate(self, x, y, z, radians, plane):
+        orig = [x, y, z]
+        c = math.cos(radians)
+        s = math.sin(radians)
+
+        # Rotation Matrices info is from:
+        # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-linear-transformations--gamedev-7716
+        # https://en.wikipedia.org/wiki/Rotation_matrix
+
+        if plane == "XY":
+            # Matrix for transformation in XY plane
+            rotMatrix = [
+                [c, -s, 0],
+                [s,  c, 0],
+                [0,  0, 1]
+                ]
+        elif plane == "XZ":
+            # Matrix for transformation in XZ plane
+            rotMatrix = [
+                [c,  0, s],
+                [0,  1, 0],
+                [-s, 0, c]
+                ]
+        elif plane == "YZ":
+            # Matrix for transformation in YZ plane
+            rotMatrix = [
+                [1, 0,  0],
+                [0, c, -s],
+                [0, s,  c]
+                ]
+        return np.dot(orig,rotMatrix)
 
     def draw(self):
         # Draw points
