@@ -138,7 +138,6 @@ class Game(object):
 
         # Rotation calculations
         angleXZ = self.getAngleXZ()
-        print(angleXZ)
 
         # Update body shape in model
         self.model.shapes[0].update(bodyCenterX,bodyCenterY,

@@ -137,11 +137,16 @@ class Cube(object):
             for pointIndex in face:
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
-            pygame.draw.polygon(
-            self.surface,
-            (0, 0, 200),
-            pointList
-        )
+            if faceIndex in [0,1]: color = (200,200,0)
+            elif faceIndex in [2,3]: color = (0,200,0)
+            else: color = (0,0,200)
+            if faceIndex in indicies[:3]:
+                pygame.draw.polygon(
+                self.surface,
+                color,
+                pointList
+                )
+                print(faceIndex, color)
 
 
     def sortFacesByZ(self):
@@ -155,7 +160,7 @@ class Cube(object):
             point3,point4 = self.points[face[2]],self.points[face[3]]
             faceZ = (point1.z + point2.z + point3.z + point4.z) / 4
             # Use bisect to determine where to place the new value of Z
-            index = bisect.bisect(zValues, faceZ)
+            index = bisect.bisect(zValues,faceZ)
             # Place value and index to corresponding list
             zValues.insert(index, faceZ)
             zSortedIndices.insert(index, faceIndex)
@@ -338,7 +343,6 @@ class shirtBody(object):
                               "XZ"
                               )
                 count += 1
-                print(x,y,z, count)
                 self.points.append(Point(x, y, z, self.surface, view))
 
     def rotate(self, x, y, z, radians, plane):
@@ -392,7 +396,8 @@ class shirtBody(object):
 
     def drawFaces(self):
         # Draw faces
-        # Sort faces first so only visible faces are shown
+
+        # Sort faces so only visible faces are shown
         indicies = self.sortFacesByZ()
         for faceIndex in indicies:
             face = self.faces[faceIndex]
@@ -400,9 +405,11 @@ class shirtBody(object):
             for pointIndex in face:
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
+            color = (43, 156, 54)
+            if faceIndex == indicies[-1]: color = (200,0,0)
             pygame.draw.polygon(
             self.surface,
-            (6, 245, 83),
+            color,
             pointList
         )
 
@@ -421,4 +428,9 @@ class shirtBody(object):
             # Place value and index to corresponding list
             zValues.insert(index, faceZ)
             zSortedIndices.insert(index, faceIndex)
+        # Bisect sorts in low Z to high Z, so reverse
+        zSortedIndices.reverse()
+        zValues.reverse()
+        print(zValues)
+        print(zSortedIndices)
         return zSortedIndices
