@@ -121,7 +121,7 @@ class Game(object):
             theta = math.atan((yShould - yElb)/(xElb - xShould + 1))
         thetaPrime = math.pi - math.pi/2 - theta
         if theta < 0: yElb += 80
-        sleeveLength = 35
+        sleeveLength = 30
 
         sign = 1 if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8 else -1
         # lower left arm

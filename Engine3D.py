@@ -140,14 +140,11 @@ class Cube(object):
             if faceIndex in [0,1]: color = (200,200,0)
             elif faceIndex in [2,3]: color = (0,200,0)
             else: color = (0,0,200)
-            if faceIndex in indicies[:3]:
-                pygame.draw.polygon(
-                self.surface,
-                color,
-                pointList
-                )
-                print(faceIndex, color)
-
+            pygame.draw.polygon(
+            self.surface,
+            color,
+            pointList
+            )
 
     def sortFacesByZ(self):
         # Sort the faces by their average Z value
@@ -164,6 +161,9 @@ class Cube(object):
             # Place value and index to corresponding list
             zValues.insert(index, faceZ)
             zSortedIndices.insert(index, faceIndex)
+        # Bisect sorts in low Z to high Z, so reverse
+        zSortedIndices.reverse()
+        zValues.reverse()
         return zSortedIndices
 
 class Model(object):
@@ -280,14 +280,14 @@ class shirtBody(object):
     def initPoints(self,xSide,ySide,centerX,centerY,centerZ):
         # Points of the cube
         self.points = [
-         Point(centerX - ySide, centerY - ySide, centerZ - self.zSide, self.surface),
-         Point(centerX + ySide, centerY - ySide, centerZ - self.zSide, self.surface),
-         Point(centerX + ySide, centerY + ySide, centerZ - self.zSide, self.surface),
-         Point(centerX - ySide, centerY + ySide, centerZ - self.zSide, self.surface),
-         Point(centerX - ySide, centerY - ySide, centerZ + self.zSide, self.surface),
-         Point(centerX + ySide, centerY - ySide, centerZ + self.zSide, self.surface),
-         Point(centerX + ySide, centerY + ySide, centerZ + self.zSide, self.surface),
-         Point(centerX - ySide, centerY + ySide, centerZ + self.zSide, self.surface)
+         Point(centerX - xSide, centerY - ySide, centerZ - self.zSide, self.surface),
+         Point(centerX + xSide, centerY - ySide, centerZ - self.zSide, self.surface),
+         Point(centerX + xSide, centerY + ySide, centerZ - self.zSide, self.surface),
+         Point(centerX - xSide, centerY + ySide, centerZ - self.zSide, self.surface),
+         Point(centerX - xSide, centerY - ySide, centerZ + self.zSide, self.surface),
+         Point(centerX + xSide, centerY - ySide, centerZ + self.zSide, self.surface),
+         Point(centerX + xSide, centerY + ySide, centerZ + self.zSide, self.surface),
+         Point(centerX - xSide, centerY + ySide, centerZ + self.zSide, self.surface)
          ]
 
     def initEdges(self):
@@ -342,13 +342,179 @@ class shirtBody(object):
                               angleXZ,
                               "XZ"
                               )
-                count += 1
                 self.points.append(Point(x, y, z, self.surface, view))
 
     def rotate(self, x, y, z, radians, plane):
         orig = [x, y, z]
         c = math.cos(radians)
         s = math.sin(radians)
+
+        # Rotation Matrices info is from:
+        # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-linear-transformations--gamedev-7716
+        # https://en.wikipedia.org/wiki/Rotation_matrix
+
+        if plane == "XY":
+            # Matrix for transformation in XY plane
+            rotMatrix = [
+                [c, -s, 0],
+                [s,  c, 0],
+                [0,  0, 1]
+                ]
+        elif plane == "XZ":
+            # Matrix for transformation in XZ plane
+            rotMatrix = [
+                [c,  0, s],
+                [0,  1, 0],
+                [-s, 0, c]
+                ]
+        elif plane == "YZ":
+            # Matrix for transformation in YZ plane
+            rotMatrix = [
+                [1, 0,  0],
+                [0, c, -s],
+                [0, s,  c]
+                ]
+        return np.dot(orig,rotMatrix)
+
+    def draw(self):
+        # Draw points
+        for point in self.points:
+            point.draw()
+        # Draw edges
+        for edge in self.edges:
+            point1Index, point2Index = edge[0], edge[1]
+            point1, point2 = self.points[point1Index], self.points[point2Index]
+            pygame.draw.line(
+                self.surface,
+                (127,96,0),
+                (point1.drawX, point1.drawY),
+                (point2.drawX, point2.drawY),
+                20
+                )
+        self.drawFaces()
+
+    def drawFaces(self):
+        # Draw faces
+
+        # Sort faces so only visible faces are shown
+        indicies = self.sortFacesByZ()
+        for faceIndex in indicies:
+            face = self.faces[faceIndex]
+            pointList = []
+            for pointIndex in face:
+                point = self.points[pointIndex]
+                pointList.append((point.drawX, point.drawY))
+            color = (43, 156, 54)
+            if faceIndex == indicies[-1]: color = (200,0,0)
+            pygame.draw.polygon(
+            self.surface,
+            color,
+            pointList
+        )
+
+    def sortFacesByZ(self):
+        # Sort the faces by their average Z value
+        # High Z values are at the front, low z values at the back
+        zValues = []
+        zSortedIndices = []
+        for faceIndex in range(len(self.faces)):
+            face = self.faces[faceIndex]
+            point1,point2 = self.points[face[0]],self.points[face[1]]
+            point3,point4 = self.points[face[2]],self.points[face[3]]
+            faceZ = (point1.z + point2.z + point3.z + point4.z) / 4
+            # Use bisect to determine where to place the new value of Z
+            index = bisect.bisect(zValues, faceZ)
+            # Place value and index to corresponding list
+            zValues.insert(index, faceZ)
+            zSortedIndices.insert(index, faceIndex)
+        # Bisect sorts in low Z to high Z, so reverse
+        zSortedIndices.reverse()
+        zValues.reverse()
+        return zSortedIndices
+
+class leftSleeve(object):
+    def __init__(self,x,y,z,surface):
+        self.surface = surface
+        # Position of cube
+        centerX = x
+        centerY = y
+        centerZ = z
+
+        self.zSide = 50
+        self.initPoints(centerX,centerY,centerZ)
+        self.initEdges()
+        self.initFaces()
+
+    def initPoints(self,centerX,centerY,centerZ):
+        # Points of the cube
+        self.points = [
+         Point(centerX, centerY, centerZ - self.zSide, self.surface),
+         Point(centerX, centerY, centerZ - self.zSide, self.surface),
+         Point(centerX, centerY, centerZ - self.zSide, self.surface),
+         Point(centerX, centerY, centerZ - self.zSide, self.surface),
+         Point(centerX, centerY, centerZ + self.zSide, self.surface),
+         Point(centerX, centerY, centerZ + self.zSide, self.surface),
+         Point(centerX, centerY, centerZ + self.zSide, self.surface),
+         Point(centerX, centerY, centerZ + self.zSide, self.surface)
+         ]
+
+    def initEdges(self):
+        # Edges of the cube in the form (point1 index, point2 index)
+        self.edges = [
+                (0,1),(1,2),(2,3),(3,0),
+                (4,5),(5,6),(6,7),(7,4),
+                (0,4),(1,5),(2,6),(3,7)
+                ]
+
+    def initFaces(self):
+        # Faces of the cube in the form (point1 index, point2 index,
+        # point3 index, point4 index)
+        self.faces = [
+                (0,1,2,3),
+                (4,5,6,7),
+                (2,3,7,6),
+                (0,1,5,4),
+                (1,2,6,5),
+                (0,3,7,4)
+                ]
+
+    def update(self, centerX, centerY, endX, endY, theta, thetaPrime, sleeveLength, angleXZ):
+        # Process rotation
+        angleXZ *= math.pi/180.0
+        # Process view, XYZ movement
+        view = (int(centerX), int(centerY), 600)
+
+        self.points = []
+         # Goes through all operations for points
+        count = 0
+        for zOp in [-1,1]:
+            z = zOp * self.zSide/2  + self.zSide
+            sign = 1 if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8 else -1
+            # Lower left arm
+            leftY1 = endY + sleeveLength * math.sin(thetaPrime) * sign
+            leftX1 = endX + sleeveLength * math.cos(thetaPrime)
+            leftY2 = endY - sleeveLength * math.sin(thetaPrime) * sign
+            leftX2 = endX - sleeveLength * math.cos(thetaPrime)
+            # Upper left arm
+            leftY3 = centerY - sleeveLength * math.cos(theta) * sign
+            leftX3 = centerX - sleeveLength * math.sin(theta)
+            leftY4 = centerY + sleeveLength * math.cos(theta) * sign
+            leftX4 = centerX + sleeveLength * math.sin(theta)
+            # Rotations
+            leftX1,leftY1,leftZ1 = self.rotate(leftX1,leftY1,z,angleXZ,"XZ")
+            leftX2,leftY2,leftZ2 = self.rotate(leftX2,leftY2,z,angleXZ,"XZ")
+            leftX3,leftY3,leftZ3 = self.rotate(leftX3,leftY3,z,angleXZ,"XZ")
+            leftX4,leftY4,leftZ4 = self.rotate(leftX4,leftY4,z,angleXZ,"XZ")
+
+            self.points.append(Point(leftX1, leftY1, leftZ1, self.surface, view))
+            self.points.append(Point(leftX4, leftY4, leftZ4, self.surface, view))
+            self.points.append(Point(leftX3, leftY3, leftZ3, self.surface, view))
+            self.points.append(Point(leftX2, leftY2, leftZ2, self.surface, view))
+
+    def rotate(self, x, y, z, radians, plane):
+        orig = [x, y, z]
+        c = float(math.cos(radians))
+        s = float(math.sin(radians))
 
         # Rotation Matrices info is from:
         # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-linear-transformations--gamedev-7716
@@ -405,8 +571,7 @@ class shirtBody(object):
             for pointIndex in face:
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
-            color = (43, 156, 54)
-            if faceIndex == indicies[-1]: color = (200,0,0)
+            color = (61, 133, 198)
             pygame.draw.polygon(
             self.surface,
             color,
@@ -431,6 +596,4 @@ class shirtBody(object):
         # Bisect sorts in low Z to high Z, so reverse
         zSortedIndices.reverse()
         zValues.reverse()
-        print(zValues)
-        print(zSortedIndices)
         return zSortedIndices
