@@ -264,17 +264,15 @@ class shirtBody(object):
         centerX = x
         centerY = y
         centerZ = z
-        # Z to start shape at
-        minZ = 250
 
         xSide = 0
         ySide = 0
         self.zSide = 100
-        self.initPoints(xSide,ySide,centerX,centerY,centerZ,minZ)
+        self.initPoints(xSide,ySide,centerX,centerY,centerZ)
         self.initEdges()
         self.initFaces()
 
-    def initPoints(self,xSide,ySide,centerX,centerY,centerZ,minZ):
+    def initPoints(self,xSide,ySide,centerX,centerY,centerZ):
         # Points of the cube
         self.points = [
          Point(centerX - ySide, centerY - ySide, centerZ - self.zSide, self.surface),
@@ -329,7 +327,7 @@ class shirtBody(object):
         self.points = []
          # Goes through all operations for points
         count = 0
-        for zOp in [-1,1]:
+        for zOp in [0,2]:
             for xyOp in XYOperations:
                 x = xyOp[0] * xSide
                 y = xyOp[1] * ySide
