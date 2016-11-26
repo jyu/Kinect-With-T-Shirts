@@ -296,7 +296,12 @@ class Game(object):
                     self.updateBody(joints)
                     self.updateArms(joints)
 
-
+        # Model Code Start
+        key = pygame.key.get_pressed()
+        if sum(key) > 0:
+            self.model.cam.keyPressed(key, self.model)
+        self.model.draw()
+        #Model Code End
 
         # reads color images from kinect
         if self.kinect.has_new_color_frame():

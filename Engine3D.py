@@ -35,6 +35,11 @@ class Point(object):
         self.drawX, self.drawY, self.drawZ = 0,0,0
         self.updateDrawCoord()
 
+    def updateViewCoord(self, newXView, newYView, newZView):
+        self.xView = newXView
+        self.yView = newYView
+        self.zView = newZView
+
     def convertTo3D(self,coord,center):
         # Adding Distortion for z coordinate to be drawn
         # Larger z towards center
@@ -42,10 +47,6 @@ class Point(object):
         except:
             return int(coord * ((self.screenHeight / 2) / (self.drawZ+1)) + center)
 
-    def updateViewCoord(self, newXView, newYView, newZView):
-        self.xView = newXView
-        self.yView = newYView
-        self.zView = newZView
 
     def updateDrawCoord(self):
         # Updates draw positions based on changes in position of the point
@@ -268,8 +269,7 @@ class shirtBody(object):
 
         xSide = 0
         ySide = 0
-        # Z dimension is half of the x and y dimensions
-        self.zSide = 40
+        self.zSide = 100
         self.initPoints(xSide,ySide,centerX,centerY,centerZ,minZ)
         self.initEdges()
         self.initFaces()
