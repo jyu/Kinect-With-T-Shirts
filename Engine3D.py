@@ -405,7 +405,7 @@ class shirtBody(object):
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
             color = (43, 156, 54)
-            if faceIndex == indicies[-1]: color = (200,0,0)
+            if faceIndex == 0: color = (200,0,0)
             pygame.draw.polygon(
             self.surface,
             color,
@@ -440,7 +440,7 @@ class leftSleeve(object):
         centerY = y
         centerZ = z
 
-        self.zSide = 50
+        self.zSide = 100
         self.initPoints(centerX,centerY,centerZ)
         self.initEdges()
         self.initFaces()
@@ -486,7 +486,6 @@ class leftSleeve(object):
 
         self.points = []
          # Goes through all operations for points
-        count = 0
         for zOp in [-1,1]:
             z = zOp * self.zSide/2  + self.zSide
             sign = 1 if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8 else -1

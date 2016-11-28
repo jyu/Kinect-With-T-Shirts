@@ -157,18 +157,52 @@ class Game(object):
         self.updateLeftArm()
 
     def updateLeftArm(self):
+         # XYZ movement calculations
+        rightPart = (self.xRightShoulder + self.xRightHip) / 2
+        leftPart = (self.xLeftShoulder + self.xLeftHip) / 2
+        upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
+        downPart = (self.yRightHip + self.yLeftHip) / 2
+        # Cnverts sensor coords to pygame screen coords
+        bodyX1 = self.sensorToScreenX(rightPart) + 20
+        bodyY1 = self.sensorToScreenY(upPart)
+        bodyX2 = self.sensorToScreenX(leftPart) - 20
+        bodyY2 = self.sensorToScreenY(downPart) - self.shirtCompensationHeight
+
+        bodyCenterX = ((bodyX1 + bodyX2) / 2)
+        bodyCenterY = ((bodyY1 + bodyY2) / 2) - 400
+        bodyWidth = bodyX2 - bodyX1
+        bodyHeight = -1 * (bodyY1 - bodyY2)
+
         # left arm
-        xShould = self.sensorToScreenX(self.xLeftShoulder)
-        yShould = self.sensorToScreenY(self.yLeftShoulder)
+        xShould = bodyCenterX + bodyWidth/2
+        yShould = bodyCenterY + bodyHeight/2
+        print(xShould)
+        print(yShould)
+        print(self.sensorToScreenX(self.xLeftShoulder))
+        print(self.sensorToScreenY(self.yLeftShoulder))
+
+        # xShould = self.model.shapes[0].points[3].x + 960
+        # yShould = self.model.shapes[0].points[3].y
+
         xElb = self.sensorToScreenX(self.xLeftElbow)
         yElb = self.sensorToScreenY(self.yLeftElbow)
+        pygame.draw.rect(
+            self.frameSurface,
+            (200, 200, 0),
+            (xShould, yShould, 40, 40)
+        )
+        pygame.draw.rect(
+            self.frameSurface,
+            (200, 200, 0),
+            (xElb, yElb, 40, 40)
+        )
         try:
             theta = math.atan((yShould - yElb)/(xElb - xShould))
         except:
             theta = math.atan((yShould - yElb)/(xElb - xShould + 1))
         thetaPrime = math.pi - math.pi/2 - theta
         if theta < 0: yElb += 80
-        sleeveLength = 30
+        sleeveLength = 40
         xArmCenter = xShould - 960
         yArmCenter = yShould - 540 + 120
         xArmEnd = xElb - 960
