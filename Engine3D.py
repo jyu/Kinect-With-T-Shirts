@@ -54,6 +54,9 @@ class Point(object):
         self.drawX = self.convertTo3D(self.x,self.cX) + self.xView
         self.drawY = self.convertTo3D(self.y,self.cY) + self.yView
 
+    def __repr__(self):
+        return "X:%d Y:%d Z:%d" % (self.drawX,self.drawY,self.drawZ)
+
     def draw(self):
         # Draws Circle at the point
         pygame.draw.circle(
@@ -62,6 +65,7 @@ class Point(object):
             (self.drawX,self.drawY),
             20
         )
+
 
 class Cube(object):
     def __init__(self,x,y,z,length,surface):
@@ -270,8 +274,8 @@ class shirtBody(object):
         centerY = y
         centerZ = z
 
-        xSide = 0
-        ySide = 0
+        xSide = 100
+        ySide = 200
         self.zSide = 100
         self.initPoints(xSide,ySide,centerX,centerY,centerZ)
         self.initEdges()
@@ -287,7 +291,17 @@ class shirtBody(object):
          Point(centerX - xSide, centerY - ySide, centerZ + self.zSide, self.surface),
          Point(centerX + xSide, centerY - ySide, centerZ + self.zSide, self.surface),
          Point(centerX + xSide, centerY + ySide, centerZ + self.zSide, self.surface),
-         Point(centerX - xSide, centerY + ySide, centerZ + self.zSide, self.surface)
+         Point(centerX - xSide, centerY + ySide, centerZ + self.zSide, self.surface),
+         # Left Sleeve
+         Point(centerX - 2.5 * xSide, centerY - 0.6 * ySide, centerZ - .5 * self.zSide, self.surface),
+         Point(centerX - xSide, centerY - 0.6 * ySide, centerZ - .5 * self.zSide, self.surface),
+         Point(centerX - xSide, centerY - ySide, centerZ - .5 * self.zSide, self.surface),
+         Point(centerX - 2.5 * xSide, centerY - ySide, centerZ - .5 * self.zSide, self.surface),
+         Point(centerX - 2.5 * xSide, centerY - 0.6 * ySide, centerZ + .5 * self.zSide, self.surface),
+         Point(centerX - xSide, centerY - 0.6 * ySide, centerZ + .5 * self.zSide, self.surface),
+         Point(centerX - xSide, centerY - ySide, centerZ + .5 * self.zSide, self.surface),
+         Point(centerX - 2.5 * xSide, centerY - ySide, centerZ + .5 * self.zSide, self.surface)
+
          ]
 
     def initEdges(self):
@@ -295,7 +309,11 @@ class shirtBody(object):
         self.edges = [
                 (0,1),(1,2),(2,3),(3,0),
                 (4,5),(5,6),(6,7),(7,4),
-                (0,4),(1,5),(2,6),(3,7)
+                (0,4),(1,5),(2,6),(3,7),
+
+                (8,9),(9,10),(10,11),(11,8),
+                (12,13),(13,14),(14,15),(15,12),
+                (8,12),(9,14),(10,14),(11,15)
                 ]
 
     def initFaces(self):
@@ -307,10 +325,17 @@ class shirtBody(object):
                 (2,3,7,6),
                 (0,1,5,4),
                 (1,2,6,5),
-                (0,3,7,4)
+                (0,3,7,4),
+
+                (8,9,10,11),
+                (12,13,14,15),
+                (10,11,15,14),
+                (8,9,13,12),
+                (9,10,14,13),
+                (8,11,15,12)
                 ]
 
-    def update(self, centerX, centerY, width, height, angleXZ):
+    def update(self, centerX, centerY, width, height, angleXZ, leftArmAngle):
         # Process rotation
         angleXZ *= math.pi/180.0
 
@@ -327,16 +352,45 @@ class shirtBody(object):
         #  Point(x - xSide, y + ySide, z + self.zSide, self.surface, view)
         #  ]
 
+        # Body
         XYOperations = [(-1,-1),(1,-1),(1,1),(-1,1)]
 
         self.points = []
          # Goes through all operations for points
-        count = 0
         for zOp in [0,2]:
             for xyOp in XYOperations:
                 x = xyOp[0] * xSide
                 y = xyOp[1] * ySide
                 z = zOp * self.zSide
+                x, y, z = self.rotate(
+                              x, y, z,
+                              angleXZ,
+                              "XZ"
+                              )
+                self.points.append(Point(x, y, z, self.surface, view))
+
+        # Left Sleeve
+
+        XOperations = [2.5,1,1,2.5]
+        YOperations = [-0.6,-0.6,-1,-1]
+
+        for zOp in [.6,1.6]:
+            for i in range(len(XOperations)):
+                xOp = XOperations[i]
+                yOp = YOperations[i]
+
+                x = xOp * xSide
+                y = yOp * ySide
+                z = zOp * self.zSide
+                x = x - xSide
+                y = y + ySide - 20
+                x, y, z = self.rotate(
+                              x, y, z,
+                              leftArmAngle,
+                              "XY"
+                              )
+                x = x + xSide - 50
+                y = y - ySide
                 x, y, z = self.rotate(
                               x, y, z,
                               angleXZ,
@@ -380,13 +434,15 @@ class shirtBody(object):
         # Draw points
         for point in self.points:
             point.draw()
+
+
         # Draw edges
         for edge in self.edges:
             point1Index, point2Index = edge[0], edge[1]
             point1, point2 = self.points[point1Index], self.points[point2Index]
             pygame.draw.line(
                 self.surface,
-                (127,96,0),
+                (200,0,0),
                 (point1.drawX, point1.drawY),
                 (point2.drawX, point2.drawY),
                 20
@@ -406,11 +462,13 @@ class shirtBody(object):
                 pointList.append((point.drawX, point.drawY))
             color = (43, 156, 54)
             if faceIndex == 0: color = (200,0,0)
+            if faceIndex >= 6:
+                color = (0, 0, 200)
             pygame.draw.polygon(
             self.surface,
             color,
             pointList
-        )
+            )
 
     def sortFacesByZ(self):
         # Sort the faces by their average Z value
@@ -575,7 +633,7 @@ class leftSleeve(object):
             self.surface,
             color,
             pointList
-        )
+            )
 
     def sortFacesByZ(self):
         # Sort the faces by their average Z value
