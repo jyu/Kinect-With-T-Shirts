@@ -45,7 +45,7 @@ class GameRuntime(object):
                     [
                     #Cube(0, 0, 0, 200, self._frame_surface),
                     #Cube(300, 150, 0, 100, self._frame_surface),
-                    shirtBody(0, 0, 0, self._frame_surface)
+                    shirt(0, 0, 0, self._frame_surface)
                     ]
                     )
         #Model Code End

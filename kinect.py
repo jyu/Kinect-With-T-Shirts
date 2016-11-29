@@ -128,9 +128,9 @@ class Game(object):
         upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
         downPart = (self.yRightHip + self.yLeftHip) / 2
         # Cnverts sensor coords to pygame screen coords
-        bodyX1 = self.sensorToScreenX(rightPart) + 20
+        bodyX1 = self.sensorToScreenX(rightPart) + 40
         bodyY1 = self.sensorToScreenY(upPart)
-        bodyX2 = self.sensorToScreenX(leftPart) - 20
+        bodyX2 = self.sensorToScreenX(leftPart) - 40
         bodyY2 = self.sensorToScreenY(downPart) - self.shirtCompensationHeight
 
         bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
@@ -138,7 +138,7 @@ class Game(object):
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2)
         # Rotation calculations
-        angleXZ = self.getAngleXZ()
+        angleXZ = 4/5 * self.getAngleXZ()
         # Update body shape in model
         self.model.shapes[0].update(bodyCenterX,bodyCenterY,
                                     bodyWidth,bodyHeight,

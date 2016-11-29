@@ -298,7 +298,8 @@ class shirt(object):
             Point(cX - xSide, cY + ySide, centerZ + self.zSide, sur)
             ]
          + self.initLeftSleevePoints(xSide,ySide,centerX,centerY,centerZ)
-         + self.initRightSleevePoints(xSide,ySide,centerX,centerY,centerZ))
+         + self.initRightSleevePoints(xSide,ySide,centerX,centerY,centerZ)
+         + self.initTopPoints(xSide,ySide,centerX,centerY,centerZ))
 
     def initLeftSleevePoints(self,xSide,ySide,centerX,centerY,centerZ):
         cX,cY,cZ = centerX,centerY,centerZ
@@ -331,6 +332,22 @@ class shirt(object):
              Point(cX + xSide      , cY - ySide      , cZ + .5 * zSid, sur),
              Point(cX + 2.5 * xSide, cY - ySide      , cZ + .5 * zSid, sur)
              ]
+
+    def initTopPoints(self,xSide,ySide,centerX,centerY,centerZ):
+        cX,cY = centerX,centerY
+        sur = self.surface
+        # Body
+        return [
+            Point(cX - xSide, cY - ySide, centerZ - self.zSide, sur),
+            Point(cX + xSide, cY - ySide, centerZ - self.zSide, sur),
+            Point(cX + 0.4 * xSide, cY - 1.2 * ySide, centerZ - self.zSide, sur),
+            Point(cX - 0.4 * xSide, cY - 1.2 * ySide, centerZ - self.zSide, sur),
+            Point(cX - xSide, cY - ySide, centerZ + self.zSide, sur),
+            Point(cX + xSide, cY - ySide, centerZ + self.zSide, sur),
+            Point(cX + 0.4 * xSide, cY - 1.2 * ySide, centerZ + self.zSide, sur),
+            Point(cX - 0.4 * xSide, cY - 1.2 * ySide, centerZ + self.zSide, sur)
+            ]
+
     def initEdges(self):
         # Edges of the cube in the form (point1 index, point2 index)
         self.edges = ([
@@ -369,7 +386,8 @@ class shirt(object):
                     (0,3,7,4)
                     ]
                     + self.initLeftSleeveFaces()
-                    + self.initRightSleeveFaces())
+                    + self.initRightSleeveFaces()
+                    + self.initTopFaces())
 
     def initLeftSleeveFaces(self):
                 # Left Sleeve
@@ -390,6 +408,16 @@ class shirt(object):
                 (16,17,21,20),
                 (17,18,23,22),
                 (16,19,23,21)
+                ]
+
+    def initTopFaces(self):
+        return [
+                (24,25,26,27),
+                (28,29,30,31),
+                (26,27,31,30),
+                (24,25,29,28),
+                (25,26,31,30),
+                (24,27,31,29)
                 ]
 
         # Base Format of points for body
@@ -413,6 +441,7 @@ class shirt(object):
         self.updateBody(xSide,ySide,angleXZ,view)
         self.updateLeftSleeve(xSide,ySide,leftAng,angleXZ,view)
         self.updateRightSleeve(xSide,ySide,rightAng,angleXZ,view)
+        self.updateTop(xSide,ySide,angleXZ,view)
 
     def updateBody(self, xSide, ySide, angleXZ, view):
         # Body
@@ -474,15 +503,27 @@ class shirt(object):
                               )
                 self.points.append(Point(x, y, z, self.surface, view))
 
+    def updateTop(self, xSide, ySide, angleXZ, view):
+        # Right Sleeve
+        XOperations, YOperations = [-1,1,0.4,-0.4], [-1,-1,-1.2,-1.2]
+        for zOp in [0,2]:
+            for i in range(len(XOperations)):
+                xOp, yOp = XOperations[i], YOperations[i]
+                x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
+                x, y, z = self.rotate(
+                              x, y, z,
+                              angleXZ,
+                              "XZ"
+                              )
+                self.points.append(Point(x, y, z, self.surface, view))
+
     def rotate(self, x, y, z, radians, plane):
         orig = [x, y, z]
         c = math.cos(radians)
         s = math.sin(radians)
-
         # Rotation Matrices info is from:
         # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-linear-transformations--gamedev-7716
         # https://en.wikipedia.org/wiki/Rotation_matrix
-
         if plane == "XY":
             # Matrix for transformation in XY plane
             rotMatrix = [
@@ -508,22 +549,27 @@ class shirt(object):
 
     def draw(self):
         # Draw points
-        # for point in self.points:
-        #     point.draw()
-
-
+        # self.drawPoints()
         # Draw edges
-        # for edge in self.edges:
-        #     point1Index, point2Index = edge[0], edge[1]
-        #     point1, point2 = self.points[point1Index], self.points[point2Index]
-        #     pygame.draw.line(
-        #         self.surface,
-        #         (200,0,0),
-        #         (point1.drawX, point1.drawY),
-        #         (point2.drawX, point2.drawY),
-        #         20
-        #         )
+        # self.drawEdges()
+        # Draw Faces
         self.drawFaces()
+
+    def drawPoints(self):
+        for point in self.points:
+             point.draw()
+
+    def drawEdges(self):
+        for edge in self.edges:
+            point1Index, point2Index = edge[0], edge[1]
+            point1, point2 = self.points[point1Index], self.points[point2Index]
+            pygame.draw.line(
+                self.surface,
+                (200,0,0),
+                (point1.drawX, point1.drawY),
+                (point2.drawX, point2.drawY),
+                20
+                )
 
     def drawFaces(self):
         # Draw faces
@@ -537,8 +583,8 @@ class shirt(object):
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
             color = (43, 156, 54)
-            if faceIndex == 0: color = (200,0,0)
-            if faceIndex >= 6:
+            if faceIndex == 0 or faceIndex == 18: color = (200,0,0)
+            if faceIndex >= 6 and faceIndex <= 17:
                 color = (61, 187, 198)
             pygame.draw.polygon(
             self.surface,
