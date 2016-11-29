@@ -284,50 +284,96 @@ class shirt(object):
 
     def initPoints(self,xSide,ySide,centerX,centerY,centerZ):
         # Points of the cube
-        self.points = [
-         Point(centerX - xSide, centerY - ySide, centerZ - self.zSide, self.surface),
-         Point(centerX + xSide, centerY - ySide, centerZ - self.zSide, self.surface),
-         Point(centerX + xSide, centerY + ySide, centerZ - self.zSide, self.surface),
-         Point(centerX - xSide, centerY + ySide, centerZ - self.zSide, self.surface),
-         Point(centerX - xSide, centerY - ySide, centerZ + self.zSide, self.surface),
-         Point(centerX + xSide, centerY - ySide, centerZ + self.zSide, self.surface),
-         Point(centerX + xSide, centerY + ySide, centerZ + self.zSide, self.surface),
-         Point(centerX - xSide, centerY + ySide, centerZ + self.zSide, self.surface),
-         # Left Sleeve
-         Point(centerX - 2.5 * xSide, centerY - 0.6 * ySide, centerZ - .5 * self.zSide, self.surface),
-         Point(centerX - xSide, centerY - 0.6 * ySide, centerZ - .5 * self.zSide, self.surface),
-         Point(centerX - xSide, centerY - ySide, centerZ - .5 * self.zSide, self.surface),
-         Point(centerX - 2.5 * xSide, centerY - ySide, centerZ - .5 * self.zSide, self.surface),
-         Point(centerX - 2.5 * xSide, centerY - 0.6 * ySide, centerZ + .5 * self.zSide, self.surface),
-         Point(centerX - xSide, centerY - 0.6 * ySide, centerZ + .5 * self.zSide, self.surface),
-         Point(centerX - xSide, centerY - ySide, centerZ + .5 * self.zSide, self.surface),
-         Point(centerX - 2.5 * xSide, centerY - ySide, centerZ + .5 * self.zSide, self.surface)
+        cX,cY = centerX,centerY
+        sur = self.surface
+        # Body
+        self.points = ([
+            Point(cX - xSide, cY - ySide, centerZ - self.zSide, sur),
+            Point(cX + xSide, cY - ySide, centerZ - self.zSide, sur),
+            Point(cX + xSide, cY + ySide, centerZ - self.zSide, sur),
+            Point(cX - xSide, cY + ySide, centerZ - self.zSide, sur),
+            Point(cX - xSide, cY - ySide, centerZ + self.zSide, sur),
+            Point(cX + xSide, cY - ySide, centerZ + self.zSide, sur),
+            Point(cX + xSide, cY + ySide, centerZ + self.zSide, sur),
+            Point(cX - xSide, cY + ySide, centerZ + self.zSide, sur)
+            ]
+         + self.initLeftSleevePoints(xSide,ySide,centerX,centerY,centerZ)
+         + self.initRightSleevePoints(xSide,ySide,centerX,centerY,centerZ))
 
-         ]
+    def initLeftSleevePoints(self,xSide,ySide,centerX,centerY,centerZ):
+        cX,cY,cZ = centerX,centerY,centerZ
+        sur = self.surface
+        zSid = self.zSide
+        # Left Sleeve
+        return [
+             Point(cX - 2.5 * xSide, cY - 0.6 * ySide, cZ - .5 * zSid, sur),
+             Point(cX - xSide      , cY - 0.6 * ySide, cZ - .5 * zSid, sur),
+             Point(cX - xSide      , cY - ySide      , cZ - .5 * zSid, sur),
+             Point(cX - 2.5 * xSide, cY - ySide      , cZ - .5 * zSid, sur),
+             Point(cX - 2.5 * xSide, cY - 0.6 * ySide, cZ + .5 * zSid, sur),
+             Point(cX - xSide      , cY - 0.6 * ySide, cZ + .5 * zSid, sur),
+             Point(cX - xSide      , cY - ySide      , cZ + .5 * zSid, sur),
+             Point(cX - 2.5 * xSide, cY - ySide      , cZ + .5 * zSid, sur)
+             ]
 
+    def initRightSleevePoints(self,xSide,ySide,centerX,centerY,centerZ):
+        cX,cY,cZ = centerX,centerY,centerZ
+        sur = self.surface
+        zSid = self.zSide
+        # Right Sleeve
+        return [
+             Point(cX + 2.5 * xSide, cY - 0.6 * ySide, cZ - .5 * zSid, sur),
+             Point(cX + xSide      , cY - 0.6 * ySide, cZ - .5 * zSid, sur),
+             Point(cX + xSide      , cY - ySide      , cZ - .5 * zSid, sur),
+             Point(cX + 2.5 * xSide, cY - ySide      , cZ - .5 * zSid, sur),
+             Point(cX + 2.5 * xSide, cY - 0.6 * ySide, cZ + .5 * zSid, sur),
+             Point(cX + xSide      , cY - 0.6 * ySide, cZ + .5 * zSid, sur),
+             Point(cX + xSide      , cY - ySide      , cZ + .5 * zSid, sur),
+             Point(cX + 2.5 * xSide, cY - ySide      , cZ + .5 * zSid, sur)
+             ]
     def initEdges(self):
         # Edges of the cube in the form (point1 index, point2 index)
-        self.edges = [
+        self.edges = ([
+                # Body
                 (0,1),(1,2),(2,3),(3,0),
                 (4,5),(5,6),(6,7),(7,4),
-                (0,4),(1,5),(2,6),(3,7),
+                (0,4),(1,5),(2,6),(3,7)]
+                + self.initLeftSleeveEdges()
+                + self.initRightSleeveEdges())
 
+    def initLeftSleeveEdges(self):
+                # Left Sleeve
+        return [
                 (8,9),(9,10),(10,11),(11,8),
                 (12,13),(13,14),(14,15),(15,12),
                 (8,12),(9,14),(10,14),(11,15)
+                ]
+    def initRightSleeveEdges(self):
+                # Right Sleeve
+        return [
+                (16,17),(17,18),(18,19),(19,16),
+                (20,21),(21,22),(22,23),(23,20),
+                (16,20),(17,22),(18,22),(19,23)
                 ]
 
     def initFaces(self):
         # Faces of the cube in the form (point1 index, point2 index,
         # point3 index, point4 index)
-        self.faces = [
-                (0,1,2,3),
-                (4,5,6,7),
-                (2,3,7,6),
-                (0,1,5,4),
-                (1,2,6,5),
-                (0,3,7,4),
+        self.faces = ([
+                    # Body
+                    (0,1,2,3),
+                    (4,5,6,7),
+                    (2,3,7,6),
+                    (0,1,5,4),
+                    (1,2,6,5),
+                    (0,3,7,4)
+                    ]
+                    + self.initLeftSleeveFaces()
+                    + self.initRightSleeveFaces())
 
+    def initLeftSleeveFaces(self):
+                # Left Sleeve
+        return [
                 (8,9,10,11),
                 (12,13,14,15),
                 (10,11,15,14),
@@ -335,13 +381,18 @@ class shirt(object):
                 (9,10,14,13),
                 (8,11,15,12)
                 ]
+    def initRightSleeveFaces(self):
+                # Right Sleeve
+        return [
+                (16,17,18,19),
+                (20,21,22,23),
+                (18,19,23,22),
+                (16,17,21,20),
+                (17,18,23,22),
+                (16,19,23,21)
+                ]
 
-    def update(self, centerX, centerY, width, height, angleXZ, leftArmAngle):
-        # Process rotation
-        angleXZ *= math.pi/180.0
-
-        xSide, ySide = width/2, height/2
-        view = (int(centerX), int(centerY), 600)
+        # Base Format of points for body
         # self.points = [
         #  Point(x - xSide, y - ySide, z - self.zSide, self.surface, view),
         #  Point(x + xSide, y - ySide, z - self.zSide, self.surface, view),
