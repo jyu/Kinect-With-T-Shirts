@@ -78,6 +78,12 @@ class Game(object):
         self.yRightElbow = 1
         self.leftArmAngle = 0
         self.rightArmAngle = 0
+        self.xRightHand = 0
+        self.yRightHand = 0
+        self.xLeftHand = 0
+        self.yLeftHand = 0
+        self.rHandState = 0
+        self.lHandState = 0
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -189,6 +195,32 @@ class Game(object):
 
         self.rightArmAngle = theta
 
+    def updateHands(self, joints):
+        self.xRightHand, self.yRightHand = self.data(joints, "HandRight")
+        self.xLeftHand, self.yLeftHand = self.data(joints, "HandLeft")
+        print(self.data(joints,"HandTipLeft"))
+
+    def drawHands(self):
+        rHandX1 = self.sensorToScreenX(self.xRightHand)
+        rHandY1 = self.sensorToScreenY(self.yRightHand)
+        lHandX1 = self.sensorToScreenX(self.xLeftHand)
+        lHandY1 = self.sensorToScreenY(self.yLeftHand)
+        if self.rHandState == 3: rColor = (200,0,0)
+        else: rColor = (0,0,200)
+        if self.lHandState == 3: lColor = (200,0,0)
+        else: lColor = (200,200,0)
+
+        pygame.draw.rect(
+            self.frameSurface,
+            rColor,
+            (rHandX1, rHandY1, 100, 100)
+        )
+        pygame.draw.rect(
+            self.frameSurface,
+            lColor,
+            (lHandX1, lHandY1, 100, 100)
+        )
+
     def runLoop(self):
         # pygame events
         for event in pygame.event.get():
@@ -205,6 +237,7 @@ class Game(object):
                     joints = body.joints
                     self.updateBody(joints)
                     self.updateArms(joints)
+                    self.updateHands(joints)
 
         # Model Code Start
         key = pygame.key.get_pressed()
@@ -220,6 +253,7 @@ class Game(object):
             frame = None
 
         self.model.draw()
+        self.drawHands()
 
         # changes ratio of image to output to window
         h_to_w = float(
