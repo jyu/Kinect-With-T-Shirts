@@ -451,7 +451,7 @@ class shirt(object):
         # Body
         index = 0
         XYOperations = [(-1,-1),(1,-1),(1,1),(-1,1)]
-        # self.points = []
+        self.points = []
          # Goes through all operations for points
         for zOp in [0,2]:
             for xyOp in XYOperations:
@@ -463,8 +463,10 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                self.points[index].set(x, y, z, view)
-                # self.points.append(Point(x, y, z, self.surface, view))
+                # self.points[index].set(x, y, z, view)
+                # self.points[index].updateDrawCoord
+
+                self.points.append(Point(x, y, z, self.surface, view))
                 index += 1
 
     def updateLeftSleeve(self, xSide, ySide, leftAng, angleXZ, view):
@@ -488,8 +490,9 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                self.points[index].set(x, y, z, view)
-                # self.points.append(Point(x, y, z, self.surface, view))
+                # self.points[index].set(x, y, z, view)
+                # self.points[index].updateDrawCoord
+                self.points.append(Point(x, y, z, self.surface, view))
                 index += 1
 
     def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
@@ -513,8 +516,10 @@ class shirt(object):
                               "XZ"
                               )
 
-                self.points[index].set(x, y, z, view)
-                # self.points.append(Point(x, y, z, self.surface, view))
+                # self.points[index].set(x, y, z, view)
+                # self.points[index].updateDrawCoord
+
+                self.points.append(Point(x, y, z, self.surface, view))
                 index += 1
 
     def updateTop(self, xSide, ySide, angleXZ, view):
@@ -530,8 +535,10 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                self.points[index].set(x, y, z, view)
-                # self.points.append(Point(x, y, z, self.surface, view))
+                # self.points[index].set(x, y, z, view)
+                # self.points[index].updateDrawCoord
+
+                self.points.append(Point(x, y, z, self.surface, view))
                 index += 1
 
     def rotate(self, x, y, z, radians, plane):
