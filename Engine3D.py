@@ -268,19 +268,20 @@ class Camera(object):
         return np.dot(orig,rotMatrix)
 
 class shirt(object):
-    def __init__(self,x,y,z,surface):
+    def __init__(self,x,y,z,surface,colors,xSide=100,ySide=200,zSide=100):
         self.surface = surface
         # Position of cube
         centerX = x
         centerY = y
         centerZ = z
-
-        xSide = 100
-        ySide = 200
-        self.zSide = 100
+        self.initX, self.initY = x,y
+        xSide = xSide
+        ySide = ySide
+        self.zSide = zSide
         self.initPoints(xSide,ySide,centerX,centerY,centerZ)
         self.initEdges()
         self.initFaces()
+        self.colors = colors
 
     def initPoints(self,xSide,ySide,centerX,centerY,centerZ):
         # Points of the cube
@@ -582,10 +583,10 @@ class shirt(object):
             for pointIndex in face:
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
-            color = (43, 156, 54)
-            if faceIndex == 0 or faceIndex == 18: color = (200,0,0)
+            color = self.colors[0]
+            if faceIndex == 0 or faceIndex == 18: color = self.colors[1]
             if faceIndex >= 6 and faceIndex <= 17:
-                color = (61, 187, 198)
+                color = self.colors[2]
             pygame.draw.polygon(
             self.surface,
             color,

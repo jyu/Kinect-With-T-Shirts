@@ -42,12 +42,23 @@ class Game(object):
             0,
             32
         )
+
         self.initBodyVar()
 
         self.model = Model(
                         self.frameSurface,
                         [
-                        shirt(0, 0, 0, self.frameSurface)
+                        shirt(0, 0, 0, self.frameSurface,
+                            [(43, 156, 54),(200,0,0),(61, 187, 198)]),
+                        shirt(800, 400, 0, self.frameSurface,
+                            [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                            60,100,10),
+                        shirt(800, -400, 0, self.frameSurface,
+                            [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                            60,100,10),
+                        shirt(800, 0, 0, self.frameSurface,
+                            [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                            60,100,10)
                         ])
 
     def initScreenVar(self):
@@ -59,6 +70,7 @@ class Game(object):
         self.cornerToMiddleConstant = 1000
         self.shirtCompensationHeight = 50
         self.shirtCompensationWidth = 20
+        self.modelAngle = 20
 
     def initBodyVar(self):
         # body variables
@@ -82,8 +94,6 @@ class Game(object):
         self.yRightHand = 0
         self.xLeftHand = 0
         self.yLeftHand = 0
-        self.rHandState = 0
-        self.lHandState = 0
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -198,28 +208,50 @@ class Game(object):
     def updateHands(self, joints):
         self.xRightHand, self.yRightHand = self.data(joints, "HandRight")
         self.xLeftHand, self.yLeftHand = self.data(joints, "HandLeft")
-        print(self.data(joints,"HandTipLeft"))
 
-    def drawHands(self):
+    def processHands(self):
         rHandX1 = self.sensorToScreenX(self.xRightHand)
         rHandY1 = self.sensorToScreenY(self.yRightHand)
         lHandX1 = self.sensorToScreenX(self.xLeftHand)
         lHandY1 = self.sensorToScreenY(self.yLeftHand)
-        if self.rHandState == 3: rColor = (200,0,0)
-        else: rColor = (0,0,200)
-        if self.lHandState == 3: lColor = (200,0,0)
-        else: lColor = (200,200,0)
 
         pygame.draw.rect(
             self.frameSurface,
-            rColor,
+            (0,0,200),
             (rHandX1, rHandY1, 100, 100)
         )
         pygame.draw.rect(
             self.frameSurface,
-            lColor,
+            (200,200,0),
             (lHandX1, lHandY1, 100, 100)
         )
+
+        if lHandX1 < 200 and lHandX1 < 200:
+            self.done = True
+
+    def drawGUI(self):
+        # Exit
+        pygame.draw.rect(
+            self.frameSurface,
+            (250,0,0),
+            (0, 0, 200, 200)
+        )
+        pygame.draw.lines(
+            self.frameSurface,
+            (255,255,255),
+            False,
+            ([(170,30),(30,30),(30,100),(170,100),(30,100),(30,170),(170,170)]),
+            10
+            )
+
+        # Closet
+        pygame.draw.line(
+            self.frameSurface,
+            (255,255,255),
+            (1450,0),(1450,1080),
+            20
+            )
+
 
     def runLoop(self):
         # pygame events
@@ -239,12 +271,16 @@ class Game(object):
                     self.updateArms(joints)
                     self.updateHands(joints)
 
-        # Model Code Start
+        # self.modelAngle += 1
+        # for i in range(len(self.model.shapes)):
+        #     if i == 0: pass
+        #     else:
+        #         shirt = self.model.shapes[i]
+        #         shirt.update(shirt.initX,shirt.initY,100,150,self.modelAngle,60,60)
+
         key = pygame.key.get_pressed()
         if sum(key) > 0:
             self.model.cam.keyPressed(key, self.model)
-        self.model.draw()
-        #Model Code End
 
         # reads color images from kinect
         if self.kinect.has_new_color_frame():
@@ -253,7 +289,8 @@ class Game(object):
             frame = None
 
         self.model.draw()
-        self.drawHands()
+        self.processHands()
+        self.drawGUI()
 
         # changes ratio of image to output to window
         h_to_w = float(
@@ -268,6 +305,8 @@ class Game(object):
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         pygame.display.update()
+
+        if self.done: return False
 
         self.clock.tick(60)
         return True
