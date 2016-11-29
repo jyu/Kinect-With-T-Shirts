@@ -35,6 +35,9 @@ class Point(object):
         self.drawX, self.drawY, self.drawZ = 0,0,0
         self.updateDrawCoord()
 
+    def set(self,newX,newY,newZ,newView):
+        x, y, z, view = newX, newY, newZ, newView
+
     def updateViewCoord(self, newXView, newYView, newZView):
         self.xView = newXView
         self.yView = newYView
@@ -446,8 +449,9 @@ class shirt(object):
 
     def updateBody(self, xSide, ySide, angleXZ, view):
         # Body
+        index = 0
         XYOperations = [(-1,-1),(1,-1),(1,1),(-1,1)]
-        self.points = []
+        # self.points = []
          # Goes through all operations for points
         for zOp in [0,2]:
             for xyOp in XYOperations:
@@ -459,11 +463,14 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                self.points.append(Point(x, y, z, self.surface, view))
+                self.points[index].set(x, y, z, view)
+                # self.points.append(Point(x, y, z, self.surface, view))
+                index += 1
 
     def updateLeftSleeve(self, xSide, ySide, leftAng, angleXZ, view):
         # Left Sleeve
         XOperations, YOperations = [2.5,.5,.5,2.5], [-0.6,-0.6,-1,-1]
+        index = 6
         for zOp in [.6,1.6]:
             for i in range(len(XOperations)):
                 xOp, yOp = XOperations[i], YOperations[i]
@@ -481,10 +488,13 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                self.points.append(Point(x, y, z, self.surface, view))
+                self.points[index].set(x, y, z, view)
+                # self.points.append(Point(x, y, z, self.surface, view))
+                index += 1
 
     def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
         # Right Sleeve
+        index = 12
         XOperations, YOperations = [-2.5,-.5,-.5,-2.5], [-0.6,-0.6,-1,-1]
         for zOp in [.6,1.6]:
             for i in range(len(XOperations)):
@@ -502,10 +512,14 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                self.points.append(Point(x, y, z, self.surface, view))
+
+                self.points[index].set(x, y, z, view)
+                # self.points.append(Point(x, y, z, self.surface, view))
+                index += 1
 
     def updateTop(self, xSide, ySide, angleXZ, view):
         # Right Sleeve
+        index = 18
         XOperations, YOperations = [-1,1,0.4,-0.4], [-1,-1,-1.2,-1.2]
         for zOp in [0,2]:
             for i in range(len(XOperations)):
@@ -516,7 +530,9 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                self.points.append(Point(x, y, z, self.surface, view))
+                self.points[index].set(x, y, z, view)
+                # self.points.append(Point(x, y, z, self.surface, view))
+                index += 1
 
     def rotate(self, x, y, z, radians, plane):
         orig = [x, y, z]
