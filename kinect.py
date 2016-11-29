@@ -302,7 +302,10 @@ class Game(object):
             self.frameSurface,
             (self.screen.get_width(), target_height)
         )
+        test = pygame.image.load("tshirt1.png")
+
         self.screen.blit(surface_to_draw, (0,0))
+        self.screen.blit(test,(0,0))
         surface_to_draw = None
         pygame.display.update()
 
