@@ -42,9 +42,7 @@ class Game(object):
             0,
             32
         )
-
         self.initBodyVar()
-
         self.model = Model(
                         self.frameSurface,
                         [
@@ -60,6 +58,18 @@ class Game(object):
                             [(43, 156, 54),(200,0,0),(61, 187, 198)],
                             60,100,10)
                         ])
+        self.initPics()
+        self.initGUIVars()
+
+    def initGUIVars(self):
+        self.MENU = 1
+        self.CLOSET = 2
+        self.DESIGN = 3
+        self.SCREENSHOT = 4
+        self.mode = self.MENU
+
+    def initPics(self):
+        self.menu = pygame.image.load("menu.png")
 
     def initScreenVar(self):
         # screen variables
@@ -210,24 +220,28 @@ class Game(object):
         self.xLeftHand, self.yLeftHand = self.data(joints, "HandLeft")
 
     def processHands(self):
-        rHandX1 = self.sensorToScreenX(self.xRightHand)
-        rHandY1 = self.sensorToScreenY(self.yRightHand)
-        lHandX1 = self.sensorToScreenX(self.xLeftHand)
-        lHandY1 = self.sensorToScreenY(self.yLeftHand)
+        rHandX = self.sensorToScreenX(self.xRightHand)
+        rHandY = self.sensorToScreenY(self.yRightHand)
+        lHandX = self.sensorToScreenX(self.xLeftHand)
+        lHandY = self.sensorToScreenY(self.yLeftHand)
 
         pygame.draw.rect(
             self.frameSurface,
             (0,0,200),
-            (rHandX1, rHandY1, 100, 100)
+            (rHandX, rHandY, 100, 100)
         )
         pygame.draw.rect(
             self.frameSurface,
             (200,200,0),
-            (lHandX1, lHandY1, 100, 100)
+            (lHandX, lHandY, 100, 100)
         )
 
-        if lHandX1 < 200 and lHandX1 < 200:
+        # Exit Button
+        if lHandX < 200 and lHandY < 200:
             self.done = True
+        # Back to menu, gesture
+        elif lHandX - rHandX <= 30 and lHandY - rHandY <= 30:
+            self.mode = self.MENU
 
     def drawGUI(self):
         # Exit
@@ -244,25 +258,27 @@ class Game(object):
             10
             )
 
-        # Closet
-        pygame.draw.line(
-            self.frameSurface,
-            (255,255,255),
-            (1450,0),(1450,1080),
-            20
-            )
+        # Menu
+        # pygame.draw.line(
+        #     self.frameSurface,
+        #     (255,255,255),
+        #     (1450,0),(1450,1080),
+        #     20
+        #     )
+
+    def blitGUI(self):
+        if self.mode == self.MENU:
+            self.screen.blit(self.menu,(760,0))
 
 
     def runLoop(self):
-        # pygame events
+        # Pygame events
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
-
-        # reads and processes body frame from kinect
+        # Reads and processes body frame from kinect
         if self.kinect.has_new_body_frame():
             self.bodies = self.kinect.get_last_body_frame()
-
             for i in range(self.kinect.max_body_count):
                 body = self.bodies.bodies[i]
                 if body.is_tracked:
@@ -277,7 +293,7 @@ class Game(object):
         #     else:
         #         shirt = self.model.shapes[i]
         #         shirt.update(shirt.initX,shirt.initY,100,150,self.modelAngle,60,60)
-
+        # KeyPresses
         key = pygame.key.get_pressed()
         if sum(key) > 0:
             self.model.cam.keyPressed(key, self.model)
@@ -302,11 +318,10 @@ class Game(object):
             self.frameSurface,
             (self.screen.get_width(), target_height)
         )
-        test = pygame.image.load("tshirt1.png")
 
         self.screen.blit(surface_to_draw, (0,0))
-        self.screen.blit(test,(0,0))
         surface_to_draw = None
+        self.blitGUI()
         pygame.display.update()
 
         if self.done: return False
