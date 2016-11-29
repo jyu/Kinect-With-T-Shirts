@@ -57,11 +57,20 @@ class Game(object):
         self.CLOSET = 2
         self.DESIGN = 3
         self.CAMERA = 4
+        self.DESIGNFRONT = 5
+        self.DESIGNSIDES = 6
+        self.DESIGNSLEEVES = 7
         self.mode = self.MENU
         self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
+        self.frontColor = [50,50,50]
+        self.nextMode = None
+        self.lock = False
+        self.sign = 1
+        self.flipLock = False
 
     def initPics(self):
         self.menu = pygame.image.load("menu.png")
+        self.design = pygame.image.load("design.png")
 
     def initScreenVar(self):
         # screen variables
@@ -240,11 +249,15 @@ class Game(object):
                 self.model.shapes.pop()
             self.mode = self.MENU
         # Update all modes
+        print(self.mode)
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
+        elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY)
+        elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY)
 
     def updateMenu(self,rHandX,rHandY):
         # Menu processing
+        # Right Panel
         if rHandX >= 1520:
             if rHandY <= 360:
                 self.mode = self.CLOSET
@@ -265,6 +278,7 @@ class Game(object):
             elif rHandY < 1080: self.mode = self.CAMERA
 
     def updateCloset(self,rHandX,rHandY,lHandY):
+        # Right Panel
         if rHandX >= 1520:
             if rHandY <= 360:
                 self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
@@ -282,6 +296,48 @@ class Game(object):
         #     else:
         #         shirt = self.model.shapes[i]
         #         shirt.update(shirt.initX,shirt.initY,100,150,self.modelAngle,60,60)
+
+    def updateDesign(self, rHandX, rHandY, lHandY):
+        # Right Panel
+        if rHandX >= 1520:
+            if rHandY <= 360:
+                self.nextMode = self.DESIGNFRONT
+            elif rHandY > 360 and rHandY < 720:
+                self.nextMode = self.DESIGNSIDES
+            elif rHandY < 1080:
+                self.nextMode = self.DESIGNSLEEVES
+        if rHandX < 1300 and self.nextMode != None:
+            self.mode = self.nextMode
+
+    def updateFront(self, rHandX, rHandY, lHandY):
+        # Flip sign gesture
+        if abs(rHandY-lHandY) >= 800 and self.flipLock == False:
+            print('flip')
+            self.sign *= -1
+            self.flipLock = True
+        if abs(rHandY-lHandY) <= 500 and self.flipLock == True:
+            self.flipLock = False
+        # Right Panel
+        if rHandX >= 1520:
+            if not self.lock:
+                if rHandY <= 360:
+                    self.frontColor[0] += 20 * self.sign
+                elif rHandY > 360 and rHandY < 720:
+                    self.frontColor[1] += 20 * self.sign
+                elif rHandY < 1080:
+                    self.frontColor[2] += 20 * self.sign
+            self.lock = True
+        if rHandX <= 1400:
+            self.lock = False
+        print(tuple(self.frontColor))
+        self.frontColor[0] = min(255, self.frontColor[0])
+        self.frontColor[1] = min(255, self.frontColor[1])
+        self.frontColor[2] = min(255, self.frontColor[2])
+        self.frontColor[0] = max(0, self.frontColor[0])
+        self.frontColor[1] = max(0, self.frontColor[1])
+        self.frontColor[2] = max(0, self.frontColor[2])
+
+        self.model.shapes[0].colors[1] = tuple(self.frontColor)
 
     def drawGUI(self):
         # Exit
@@ -306,12 +362,29 @@ class Game(object):
         #     20
         #     )
 
-        # Closet
-        if self.mode == self.CLOSET: pass
+        # Design Front
+        if self.mode == self.DESIGNFRONT:
+            pygame.draw.rect(
+                self.frameSurface,
+                (200,0,0),
+                (1520,0,400,360)
+                )
+            pygame.draw.rect(
+                self.frameSurface,
+                (0,200,0),
+                (1520,360,400,360)
+                )
+            pygame.draw.rect(
+                self.frameSurface,
+                (0,0,200),
+                (1520,720,400,360)
+                )
 
     def blitGUI(self):
         if self.mode == self.MENU:
             self.screen.blit(self.menu,(760,0))
+        if self.mode == self.DESIGN:
+            self.screen.blit(self.design,(760,0))
 
 
     def runLoop(self):
