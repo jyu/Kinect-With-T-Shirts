@@ -47,16 +47,7 @@ class Game(object):
                         self.frameSurface,
                         [
                         shirt(0, 0, 0, self.frameSurface,
-                            [(43, 156, 54),(200,0,0),(61, 187, 198)]),
-                        shirt(800, 400, 0, self.frameSurface,
-                            [(43, 156, 54),(200,0,0),(61, 187, 198)],
-                            60,100,10),
-                        shirt(800, -400, 0, self.frameSurface,
-                            [(43, 156, 54),(200,0,0),(61, 187, 198)],
-                            60,100,10),
-                        shirt(800, 0, 0, self.frameSurface,
-                            [(43, 156, 54),(200,0,0),(61, 187, 198)],
-                            60,100,10)
+                            [(43, 156, 54),(200,0,0),(61, 187, 198)])
                         ])
         self.initPics()
         self.initGUIVars()
@@ -67,6 +58,7 @@ class Game(object):
         self.DESIGN = 3
         self.SCREENSHOT = 4
         self.mode = self.MENU
+        self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
 
     def initPics(self):
         self.menu = pygame.image.load("menu.png")
@@ -219,29 +211,63 @@ class Game(object):
         self.xRightHand, self.yRightHand = self.data(joints, "HandRight")
         self.xLeftHand, self.yLeftHand = self.data(joints, "HandLeft")
 
-    def processHands(self):
+    def updateHands(self):
         rHandX = self.sensorToScreenX(self.xRightHand)
         rHandY = self.sensorToScreenY(self.yRightHand)
         lHandX = self.sensorToScreenX(self.xLeftHand)
         lHandY = self.sensorToScreenY(self.yLeftHand)
 
-        pygame.draw.rect(
-            self.frameSurface,
-            (0,0,200),
-            (rHandX, rHandY, 100, 100)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200,200,0),
-            (lHandX, lHandY, 100, 100)
-        )
+        # Draw Hands
+        # pygame.draw.rect(
+        #     self.frameSurface,
+        #     (0,0,200),
+        #     (rHandX, rHandY, 100, 100)
+        # )
+        # pygame.draw.rect(
+        #     self.frameSurface,
+        #     (200,200,0),
+        #     (lHandX, lHandY, 100, 100)
+        # )
 
         # Exit Button
         if lHandX < 200 and lHandY < 200:
             self.done = True
         # Back to menu, gesture
         elif lHandX - rHandX <= 30 and lHandY - rHandY <= 30:
+            if self.mode == self.CLOSET:
+                self.model.shapes.pop()
+                self.model.shapes.pop()
+                self.model.shapes.pop()
             self.mode = self.MENU
+        # Update all modes
+        if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
+        elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY)
+
+    def updateMenu(self,rHandX,rHandY):
+        # Menu processing
+        if rHandX >= 1520:
+            if rHandY <= 360: self.mode = self.CLOSET
+            if rHandY > 360 and rHandY < 720: self.mode = self.DESIGN
+            if rHandY < 1080: self.mode = self.CAMERA
+
+    def updateCloset(self,rHandX,rHandY,lHandY):
+        if rHandX >= 1520:
+            if rHandY <= 360:
+                self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
+            if rHandY > 360 and rHandY < 720:
+                self.nextColors = [(200,0,0),(61, 187, 198)(43, 156, 54)]
+            if rHandY < 1080:
+                self.nextColors = [(61, 187, 198),(43, 156, 54),(200,0,0)]
+        # Change Colors
+        if rHandY < 0 and lHandY < 0:
+            self.model.shapes[0].colors = self.nextColors
+
+                # self.modelAngle += 1
+        # for i in range(len(self.model.shapes)):
+        #     if i == 0: pass
+        #     else:
+        #         shirt = self.model.shapes[i]
+        #         shirt.update(shirt.initX,shirt.initY,100,150,self.modelAngle,60,60)
 
     def drawGUI(self):
         # Exit
@@ -262,9 +288,24 @@ class Game(object):
         # pygame.draw.line(
         #     self.frameSurface,
         #     (255,255,255),
-        #     (1450,0),(1450,1080),
+        #     (1520,0),(1520,1080),
         #     20
         #     )
+
+        # Closet
+        if self.mode == self.CLOSET:
+            self.model.shapes.extend(
+                [
+                shirt(800, 400, 0, self.frameSurface,
+                    [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                    60,100,10),
+                shirt(800, -400, 0, self.frameSurface,
+                    [(200,0,0),(61, 187, 198)(43, 156, 54)],
+                    60,100,10),
+                shirt(800, 0, 0, self.frameSurface,
+                    [(61, 187, 198),(43, 156, 54),(200,0,0)],
+                    60,100,10)
+                ])
 
     def blitGUI(self):
         if self.mode == self.MENU:
@@ -287,12 +328,6 @@ class Game(object):
                     self.updateArms(joints)
                     self.updateHands(joints)
 
-        # self.modelAngle += 1
-        # for i in range(len(self.model.shapes)):
-        #     if i == 0: pass
-        #     else:
-        #         shirt = self.model.shapes[i]
-        #         shirt.update(shirt.initX,shirt.initY,100,150,self.modelAngle,60,60)
         # KeyPresses
         key = pygame.key.get_pressed()
         if sum(key) > 0:
@@ -305,7 +340,7 @@ class Game(object):
             frame = None
 
         self.model.draw()
-        self.processHands()
+        self.updateHands()
         self.drawGUI()
 
         # changes ratio of image to output to window
