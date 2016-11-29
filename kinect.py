@@ -189,58 +189,6 @@ class Game(object):
 
         self.rightArmAngle = theta
 
-    def drawRightArm(self):
-        # right arm
-        xShould = self.sensorToScreenX(self.xRightShoulder)
-        yShould = self.sensorToScreenY(self.yRightShoulder) + 40
-        xElb = self.sensorToScreenX(self.xRightElbow)
-        yElb = self.sensorToScreenY(self.yRightElbow)
-        try:
-            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
-        except:
-            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + 1))
-        thetaPrime = math.pi - math.pi/2 - theta
-        if theta < 0: yElb += 80
-        sleeveLength = 35
-        sign = 1 if abs(theta) < math.pi/8 or abs(theta) > math.pi*3/8 else -1
-        # lower right arm
-        leftY1 = yElb + sleeveLength * math.sin(thetaPrime) * sign
-        leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
-        leftY2 = yElb - sleeveLength * math.sin(thetaPrime) * sign
-        leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-        # upper right arm
-        leftY3 = yShould - sleeveLength * math.cos(theta) * sign
-        leftX3 = xShould - sleeveLength * math.sin(theta)
-        leftY4 = yShould + sleeveLength * math.cos(theta) * sign
-        leftX4 = xShould + sleeveLength * math.sin(theta)
-
-        pygame.draw.polygon(
-            self.frameSurface,
-            (0, 0, 200),
-            [(leftX1, leftY1),(leftX2, leftY2),(leftX3,leftY3),(leftX4,leftY4)]
-        )
-
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX1, leftY1, 20, 20)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX2, leftY2, 20, 20)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX3, leftY3, 20, 20)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX4, leftY4, 20, 20)
-        )
-
     def runLoop(self):
         # pygame events
         for event in pygame.event.get():
