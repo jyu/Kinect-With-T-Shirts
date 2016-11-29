@@ -56,7 +56,7 @@ class Game(object):
         self.MENU = 1
         self.CLOSET = 2
         self.DESIGN = 3
-        self.SCREENSHOT = 4
+        self.CAMERA = 4
         self.mode = self.MENU
         self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
 
@@ -211,7 +211,7 @@ class Game(object):
         self.xRightHand, self.yRightHand = self.data(joints, "HandRight")
         self.xLeftHand, self.yLeftHand = self.data(joints, "HandLeft")
 
-    def updateHands(self):
+    def updateGUI(self):
         rHandX = self.sensorToScreenX(self.xRightHand)
         rHandY = self.sensorToScreenY(self.yRightHand)
         lHandX = self.sensorToScreenX(self.xLeftHand)
@@ -233,7 +233,7 @@ class Game(object):
         if lHandX < 200 and lHandY < 200:
             self.done = True
         # Back to menu, gesture
-        elif lHandX - rHandX <= 30 and lHandY - rHandY <= 30:
+        elif abs(lHandX-rHandX) <= 30 and abs(lHandY-rHandY) <= 30 and rHandY > 30:
             if self.mode == self.CLOSET:
                 self.model.shapes.pop()
                 self.model.shapes.pop()
@@ -241,25 +241,39 @@ class Game(object):
             self.mode = self.MENU
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
-        elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY)
+        elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
 
     def updateMenu(self,rHandX,rHandY):
         # Menu processing
         if rHandX >= 1520:
-            if rHandY <= 360: self.mode = self.CLOSET
-            if rHandY > 360 and rHandY < 720: self.mode = self.DESIGN
-            if rHandY < 1080: self.mode = self.CAMERA
+            if rHandY <= 360:
+                self.mode = self.CLOSET
+                self.model.shapes.extend(
+                    [
+                    shirt(800, -400, 0, self.frameSurface,
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                        60,100,10),
+                    shirt(800, 0, 0, self.frameSurface,
+                        [(200,0,0),(61, 187, 198),(43, 156, 54)],
+                        60,100,10),
+                    shirt(800, 400, 0, self.frameSurface,
+                        [(61, 187, 198),(43, 156, 54),(200,0,0)],
+                        60,100,10)
+                    ])
+
+            elif rHandY > 360 and rHandY < 720: self.mode = self.DESIGN
+            elif rHandY < 1080: self.mode = self.CAMERA
 
     def updateCloset(self,rHandX,rHandY,lHandY):
         if rHandX >= 1520:
             if rHandY <= 360:
                 self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
-            if rHandY > 360 and rHandY < 720:
-                self.nextColors = [(200,0,0),(61, 187, 198)(43, 156, 54)]
-            if rHandY < 1080:
+            elif rHandY > 360 and rHandY < 720:
+                self.nextColors = [(200,0,0),(61, 187, 198),(43, 156, 54)]
+            elif rHandY < 1080:
                 self.nextColors = [(61, 187, 198),(43, 156, 54),(200,0,0)]
         # Change Colors
-        if rHandY < 0 and lHandY < 0:
+        if rHandY < 30 and lHandY < 30:
             self.model.shapes[0].colors = self.nextColors
 
                 # self.modelAngle += 1
@@ -293,19 +307,7 @@ class Game(object):
         #     )
 
         # Closet
-        if self.mode == self.CLOSET:
-            self.model.shapes.extend(
-                [
-                shirt(800, 400, 0, self.frameSurface,
-                    [(43, 156, 54),(200,0,0),(61, 187, 198)],
-                    60,100,10),
-                shirt(800, -400, 0, self.frameSurface,
-                    [(200,0,0),(61, 187, 198)(43, 156, 54)],
-                    60,100,10),
-                shirt(800, 0, 0, self.frameSurface,
-                    [(61, 187, 198),(43, 156, 54),(200,0,0)],
-                    60,100,10)
-                ])
+        if self.mode == self.CLOSET: pass
 
     def blitGUI(self):
         if self.mode == self.MENU:
@@ -340,7 +342,7 @@ class Game(object):
             frame = None
 
         self.model.draw()
-        self.updateHands()
+        self.updateGUI()
         self.drawGUI()
 
         # changes ratio of image to output to window
