@@ -47,8 +47,7 @@ class Game(object):
         self.model = Model(
                         self.frameSurface,
                         [
-                        shirtBody(0, 0, 0, self.frameSurface),
-
+                        shirt(0, 0, 0, self.frameSurface)
                         ])
 
     def initScreenVar(self):
@@ -78,6 +77,7 @@ class Game(object):
         self.xRightElbow = 1
         self.yRightElbow = 1
         self.leftArmAngle = 0
+        self.rightArmAngle = 0
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -165,16 +165,6 @@ class Game(object):
         xElb = self.sensorToScreenX(self.xLeftElbow)
         yElb = self.sensorToScreenY(self.yLeftElbow)
 
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (xShould, yShould, 40, 40)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (xElb, yElb, 40, 40)
-        )
         try:
             theta = math.atan((yShould - yElb)/(xElb - xShould))
         except:
@@ -183,72 +173,19 @@ class Game(object):
 
         self.leftArmAngle = theta
 
-        if theta < 0: yElb += 80
-        sleeveLength = 40
-        xArmCenter = xShould - 960
-        yArmCenter = yShould - 540 + 120
-        xArmEnd = xElb - 960
-        yArmEnd = yElb - 540
-        # Rotation calculations
-        angleXZ = self.getAngleXZ()
-        # self.model.shapes[1].update(xArmCenter,yArmCenter,
-        #                             xArmEnd, yArmEnd,
-        #                             theta,thetaPrime,
-        #                             sleeveLength,
-        #                             angleXZ)
-
-    def drawLeftArm(self):
-        # left arm
-        xShould = self.sensorToScreenX(self.xLeftShoulder)
-        yShould = self.sensorToScreenY(self.yLeftShoulder)
-        xElb = self.sensorToScreenX(self.xLeftElbow)
-        yElb = self.sensorToScreenY(self.yLeftElbow)
+    def updateRightArm(self):
+        # right arm
+        xShould = self.sensorToScreenX(self.xRightShoulder)
+        yShould = self.sensorToScreenY(self.yRightShoulder) + 40
+        xElb = self.sensorToScreenX(self.xRightElbow)
+        yElb = self.sensorToScreenY(self.yRightElbow)
         try:
-            theta = math.atan((yShould - yElb)/(xElb - xShould))
+            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
         except:
-            theta = math.atan((yShould - yElb)/(xElb - xShould + 1))
+            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + 1))
         thetaPrime = math.pi - math.pi/2 - theta
-        if theta < 0: yElb += 80
-        sleeveLength = 35
 
-        sign = 1 if abs(theta) > math.pi/8 and abs(theta) < math.pi*3/8 else -1
-        # lower left arm
-        leftY1 = yElb + sleeveLength * math.sin(thetaPrime) * sign
-        leftX1 = xElb + sleeveLength * math.cos(thetaPrime)
-        leftY2 = yElb - sleeveLength * math.sin(thetaPrime) * sign
-        leftX2 = xElb - sleeveLength * math.cos(thetaPrime)
-        # upper left arm
-        leftY3 = yShould - sleeveLength * math.cos(theta) * sign
-        leftX3 = xShould - sleeveLength * math.sin(theta)
-        leftY4 = yShould + sleeveLength * math.cos(theta) * sign
-        leftX4 = xShould + sleeveLength * math.sin(theta)
-
-        pygame.draw.polygon(
-            self.frameSurface,
-            (0, 0, 200),
-            [(leftX1, leftY1),(leftX2, leftY2),(leftX3,leftY3),(leftX4,leftY4)]
-        )
-
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX1, leftY1, 20, 20)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX2, leftY2, 20, 20)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX3, leftY3, 20, 20)
-        )
-        pygame.draw.rect(
-            self.frameSurface,
-            (200, 200, 0),
-            (leftX4, leftY4, 20, 20)
-        )
+        self.rightArmAngle = theta
 
     def drawRightArm(self):
         # right arm
@@ -333,7 +270,6 @@ class Game(object):
             frame = None
 
         self.model.draw()
-        self.drawRightArm()
 
         # changes ratio of image to output to window
         h_to_w = float(

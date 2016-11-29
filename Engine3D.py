@@ -43,9 +43,10 @@ class Point(object):
     def convertTo3D(self,coord,center):
         # Adding Distortion for z coordinate to be drawn
         # Larger z towards center
-        try: return int(coord * ((self.screenHeight / 2) / self.drawZ) + center)
-        except:
-            return int(coord * ((self.screenHeight / 2) / (self.drawZ+1)) + center)
+        if not self.drawZ == 0:
+            return int(coord * ((self.screenHeight / 2) / self.drawZ) + center)
+        else:
+            return 1
 
 
     def updateDrawCoord(self):
@@ -266,7 +267,7 @@ class Camera(object):
                 ]
         return np.dot(orig,rotMatrix)
 
-class shirtBody(object):
+class shirt(object):
     def __init__(self,x,y,z,surface):
         self.surface = surface
         # Position of cube
