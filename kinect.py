@@ -143,7 +143,8 @@ class Game(object):
         self.model.shapes[0].update(bodyCenterX,bodyCenterY,
                                     bodyWidth,bodyHeight,
                                     angleXZ,
-                                    self.leftArmAngle)
+                                    self.leftArmAngle,
+                                    self.rightArmAngle)
 
     def getAngleXZ(self):
         # Compares shoulder width difference and depth differences to get angle
@@ -157,6 +158,7 @@ class Game(object):
         self.xLeftElbow, self.yLeftElbow = self.data(joints, "ElbowLeft")
         self.xRightElbow, self.yRightElbow = self.data(joints, "ElbowRight")
         self.updateLeftArm()
+        self.updateRightArm()
 
     def updateLeftArm(self):
         # left arm

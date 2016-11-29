@@ -404,9 +404,19 @@ class shirt(object):
         #  Point(x - xSide, y + ySide, z + self.zSide, self.surface, view)
         #  ]
 
+    def update(self, cX, cY, width, height, angleXZ, leftAng, rightAng):
+        # Process rotation
+        angleXZ *= math.pi/180.0
+        # XYZ movement and sizing
+        view = (int(cX), int(cY), 600)
+        xSide, ySide = width/2, height/2
+        self.updateBody(xSide,ySide,angleXZ,view)
+        self.updateLeftSleeve(xSide,ySide,leftAng,angleXZ,view)
+        self.updateRightSleeve(xSide,ySide,rightAng,angleXZ,view)
+
+    def updateBody(self, xSide, ySide, angleXZ, view):
         # Body
         XYOperations = [(-1,-1),(1,-1),(1,1),(-1,1)]
-
         self.points = []
          # Goes through all operations for points
         for zOp in [0,2]:
@@ -421,28 +431,42 @@ class shirt(object):
                               )
                 self.points.append(Point(x, y, z, self.surface, view))
 
+    def updateLeftSleeve(self, xSide, ySide, leftAng, angleXZ, view):
         # Left Sleeve
-
-        XOperations = [2.5,1,1,2.5]
-        YOperations = [-0.6,-0.6,-1,-1]
-
+        XOperations, YOperations = [2.5,.5,.5,2.5], [-0.6,-0.6,-1,-1]
         for zOp in [.6,1.6]:
             for i in range(len(XOperations)):
-                xOp = XOperations[i]
-                yOp = YOperations[i]
-
-                x = xOp * xSide
-                y = yOp * ySide
-                z = zOp * self.zSide
-                x = x - xSide
-                y = y + ySide - 20
+                xOp, yOp = XOperations[i], YOperations[i]
+                x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
+                # Translate to shoulder to rotate and translate back
+                x, y = x - xSide, y + ySide - 20
                 x, y, z = self.rotate(
                               x, y, z,
-                              leftArmAngle,
+                              leftAng,
                               "XY"
                               )
-                x = x + xSide - 50
-                y = y - ySide
+                x, y = x + xSide - 50, y - ySide
+                x, y, z = self.rotate(
+                              x, y, z,
+                              angleXZ,
+                              "XZ"
+                              )
+                self.points.append(Point(x, y, z, self.surface, view))
+
+    def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
+        # Right Sleeve
+        XOperations, YOperations = [-2.5,-.5,-.5,-2.5], [-0.6,-0.6,-1,-1]
+        for zOp in [.6,1.6]:
+            for i in range(len(XOperations)):
+                xOp, yOp = XOperations[i], YOperations[i]
+                x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
+                x, y = x + xSide, y + ySide - 20
+                x, y, z = self.rotate(
+                              x, y, z,
+                               -rightAng,
+                              "XY"
+                              )
+                x, y = x - xSide + 50, y - ySide
                 x, y, z = self.rotate(
                               x, y, z,
                               angleXZ,
@@ -484,21 +508,21 @@ class shirt(object):
 
     def draw(self):
         # Draw points
-        for point in self.points:
-            point.draw()
+        # for point in self.points:
+        #     point.draw()
 
 
         # Draw edges
-        for edge in self.edges:
-            point1Index, point2Index = edge[0], edge[1]
-            point1, point2 = self.points[point1Index], self.points[point2Index]
-            pygame.draw.line(
-                self.surface,
-                (200,0,0),
-                (point1.drawX, point1.drawY),
-                (point2.drawX, point2.drawY),
-                20
-                )
+        # for edge in self.edges:
+        #     point1Index, point2Index = edge[0], edge[1]
+        #     point1, point2 = self.points[point1Index], self.points[point2Index]
+        #     pygame.draw.line(
+        #         self.surface,
+        #         (200,0,0),
+        #         (point1.drawX, point1.drawY),
+        #         (point2.drawX, point2.drawY),
+        #         20
+        #         )
         self.drawFaces()
 
     def drawFaces(self):
@@ -515,7 +539,7 @@ class shirt(object):
             color = (43, 156, 54)
             if faceIndex == 0: color = (200,0,0)
             if faceIndex >= 6:
-                color = (0, 0, 200)
+                color = (61, 187, 198)
             pygame.draw.polygon(
             self.surface,
             color,
