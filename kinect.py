@@ -165,7 +165,7 @@ class Game(object):
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2)
         # Rotation calculations
-        angleXZ = 4/5 * self.getAngleXZ()
+        angleXZ = 3.8/5 * self.getAngleXZ()
         # Update body shape in model
         self.model.shapes[0].update(bodyCenterX,bodyCenterY,
                                     bodyWidth,bodyHeight,
