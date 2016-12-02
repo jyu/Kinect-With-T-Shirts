@@ -496,7 +496,7 @@ class shirt(object):
                 # self.points[index].set(x, y, z, view)
                 # self.points[index].updateDrawCoord
                 self.points.append(Point(x, y, z, self.surface, view))
-                index += 1
+                # index += 1
 
     def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
         # Right Sleeve
@@ -523,7 +523,7 @@ class shirt(object):
                 # self.points[index].updateDrawCoord
 
                 self.points.append(Point(x, y, z, self.surface, view))
-                index += 1
+                # index += 1
 
     def updateTop(self, xSide, ySide, angleXZ, view):
         # Right Sleeve
