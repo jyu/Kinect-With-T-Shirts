@@ -618,6 +618,17 @@ class shirt(object):
             color,
             pointList
             )
+        face = self.faces[18]
+        pointList = []
+        for pointIndex in face:
+            point = self.points[pointIndex]
+            pointList.append((point.drawX, point.drawY))
+        color = self.colors[1]
+        pygame.draw.polygon(
+        self.surface,
+        color,
+        pointList
+        )
 
     def sortFacesByZ(self):
         # Sort the faces by their average Z value
