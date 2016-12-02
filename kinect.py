@@ -80,21 +80,30 @@ class Game(object):
         self.sensorScreenWidth = 3
         self.cornerToMiddleConstant = 1000
         self.shirtCompensationHeight = 50
-        self.shirtCompensationWidth = 20
+        self.shirtCompensationWidth = 0
         self.modelAngle = 20
 
     def initBodyVar(self):
         # body variables
+        self.initShoulderHip()
+        self.initArm()
+
+    def initShoulderHip(self):
         self.yLeftShoulder = 0
-        self.yRightShoulder = 0
-        self.yLeftHip = 0
-        self.yRightHip = 0
         self.xLeftShoulder = 0
-        self.xRightShoulder = 0
-        self.zRightShoulder = 0
         self.zLeftShoulder = 0
+        self.xRightShoulder = 0
+        self.yRightShoulder = 0
+        self.zRightShoulder = 0
         self.xLeftHip = 0
+        self.yLeftHip = 0
+        self.zLeftHip = 0
         self.xRightHip = 0
+        self.yRightHip = 0
+        self.zRightHip = 0
+
+
+    def initArm(self):
         self.xLeftElbow = 1
         self.yLeftElbow = 1
         self.xRightElbow = 1
@@ -137,8 +146,12 @@ class Game(object):
 
     def updateBody(self, joints):
         # Update body trackers
-        self.xLeftHip, self.yLeftHip = self.data(joints, "HipLeft")
-        self.xRightHip, self.yRightHip = self.data(joints, "HipRight")
+        (self.xLeftHip,
+        self.yLeftHip,
+        self.zLeftHip) = self.data(joints, "HipLeft", True)
+        (self.xRightHip,
+        self.yRightHip,
+        self.zRightHip) = self.data(joints, "HipRight", True)
         (self.xLeftShoulder,
         self.yLeftShoulder,
         self.zLeftShoulder) = self.data(joints, "ShoulderLeft", True)
@@ -154,11 +167,15 @@ class Game(object):
         leftPart = (self.xLeftShoulder + self.xLeftHip) / 2
         upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
         downPart = (self.yRightHip + self.yLeftHip) / 2
-        # Cnverts sensor coords to pygame screen coords
-        bodyX1 = self.sensorToScreenX(rightPart) + 40
+        zAvg = (self.zRightShoulder + self.zLeftShoulder
+                + self.zRightHip + self.zLeftHip) / 4
+        # Converts sensor coords to pygame screen coords
+        bodyX1 = self.sensorToScreenX(rightPart) + 50
         bodyY1 = self.sensorToScreenY(upPart)
-        bodyX2 = self.sensorToScreenX(leftPart) - 40
+        bodyX2 = self.sensorToScreenX(leftPart) - 50
         bodyY2 = self.sensorToScreenY(downPart) - self.shirtCompensationHeight
+        bodyZ = zAvg * 600/1.47
+        #bodyZ = 600
 
         bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
         bodyCenterY = ((bodyY1 + bodyY2) / 2) - 540
@@ -171,7 +188,8 @@ class Game(object):
                                     bodyWidth,bodyHeight,
                                     angleXZ,
                                     self.leftArmAngle,
-                                    self.rightArmAngle)
+                                    self.rightArmAngle,
+                                    bodyZ)
 
     def getAngleXZ(self):
         # Compares shoulder width difference and depth differences to get angle
@@ -249,7 +267,6 @@ class Game(object):
                 self.model.shapes.pop()
             self.mode = self.MENU
         # Update all modes
-        print(self.mode)
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY)
@@ -329,7 +346,6 @@ class Game(object):
             self.lock = True
         if rHandX <= 1400:
             self.lock = False
-        print(tuple(self.frontColor))
         self.frontColor[0] = min(255, self.frontColor[0])
         self.frontColor[1] = min(255, self.frontColor[1])
         self.frontColor[2] = min(255, self.frontColor[2])

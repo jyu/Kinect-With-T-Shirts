@@ -436,11 +436,11 @@ class shirt(object):
         #  Point(x - xSide, y + ySide, z + self.zSide, self.surface, view)
         #  ]
 
-    def update(self, cX, cY, width, height, angleXZ, leftAng, rightAng):
+    def update(self, cX, cY, width, height, angleXZ, leftAng, rightAng, bodyZ):
         # Process rotation
         angleXZ *= math.pi/180.0
         # XYZ movement and sizing
-        view = (int(cX), int(cY), 600)
+        view = (int(cX), int(cY), bodyZ)
         xSide, ySide = width/2, height/2
         self.updateBody(xSide,ySide,angleXZ,view)
         self.updateLeftSleeve(xSide,ySide,leftAng,angleXZ,view)
@@ -471,20 +471,23 @@ class shirt(object):
 
     def updateLeftSleeve(self, xSide, ySide, leftAng, angleXZ, view):
         # Left Sleeve
-        XOperations, YOperations = [2.5,.5,.5,2.5], [-0.6,-0.6,-1,-1]
+        XOperations, YOperations = [2.5,.5,.5,2.5], [-0.5,-0.5,-1,-1]
         index = 6
         for zOp in [.6,1.6]:
             for i in range(len(XOperations)):
                 xOp, yOp = XOperations[i], YOperations[i]
                 x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
                 # Translate to shoulder to rotate and translate back
-                x, y = x - xSide, y + ySide - 20
+                x, y = x - xSide, y + ySide
                 x, y, z = self.rotate(
                               x, y, z,
                               leftAng,
                               "XY"
                               )
+                if leftAng > 0: yLift = leftAng * (20)
+                else: yLift = 0
                 x, y = x + xSide - 50, y - ySide
+                print(leftAng)
                 x, y, z = self.rotate(
                               x, y, z,
                               angleXZ,
