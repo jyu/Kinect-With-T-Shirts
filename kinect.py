@@ -174,8 +174,9 @@ class Game(object):
         bodyY1 = self.sensorToScreenY(upPart)
         bodyX2 = self.sensorToScreenX(leftPart) - 50
         bodyY2 = self.sensorToScreenY(downPart) - self.shirtCompensationHeight
-        bodyZ = zAvg * 600/1.47
+        bodyZ = zAvg * 600/1.5
         #bodyZ = 600
+        #print(zAvg)
 
         bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
         bodyCenterY = ((bodyY1 + bodyY2) / 2) - 540
@@ -415,9 +416,10 @@ class Game(object):
                 body = self.bodies.bodies[i]
                 if body.is_tracked:
                     joints = body.joints
-                    self.updateBody(joints)
                     self.updateArms(joints)
                     self.updateHands(joints)
+                    self.updateBody(joints)
+
 
         # KeyPresses
         key = pygame.key.get_pressed()

@@ -487,7 +487,7 @@ class shirt(object):
                 if leftAng > 0: yLift = leftAng * (20)
                 else: yLift = 0
                 x, y = x + xSide - 50, y - ySide
-                print(leftAng)
+                # print(leftAng)
                 x, y, z = self.rotate(
                               x, y, z,
                               angleXZ,
