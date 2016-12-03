@@ -122,6 +122,8 @@ class Game(object):
         self.yRightHand = [0,0,0,0,0,0]
         self.xLeftHand = [0,0,0,0,0,0]
         self.yLeftHand = [0,0,0,0,0,0]
+        self.leftDownSwing = [True, True, True, True, True, True]
+        self.rightDownSwing = [True, True, True, True, True, True]
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -191,8 +193,8 @@ class Game(object):
         bodyHeight = -1 * (bodyY1 - bodyY2)
         # Rotation calculations
         angleXZ = 3.8/5 * self.getAngleXZ(i)
-        print(angleXZ, bodyCenterX)
-        print(self.angleCorrection(bodyCenterX))
+        #print(angleXZ, bodyCenterX)
+        #print(self.angleCorrection(bodyCenterX))
         angleXZ += self.angleCorrection(bodyCenterX)
         # Update body shape in model
         self.model.shapes[i].update(bodyCenterX,bodyCenterY,
@@ -201,6 +203,7 @@ class Game(object):
                                     self.leftArmAngle[i],
                                     self.rightArmAngle[i],
                                     bodyZ)
+
     def angleCorrection(self, bodyX):
         # As person moves along the X, there is automatic angle added on because
         # of difference in Z of shoulders. This function corrects it so standing
@@ -232,8 +235,13 @@ class Game(object):
         try:
             theta = math.atan((yShould - yElb)/(xElb - xShould))
         except:
-            theta = math.atan((yShould - yElb)/(xElb - xShould + 1))
+            theta = math.atan((yShould - yElb)/(xElb - xShould + .01))
         thetaPrime = math.pi - math.pi/2 - theta
+
+        if theta <= 0 and theta >= -1.4: self.leftDownSwing[i] = False
+        elif theta >= 0: self.leftDownSwing[i] = True
+        if theta < -1.4 and self.leftDownSwing[i]:
+            theta = 1.57
 
         self.leftArmAngle[i] = theta
 
@@ -246,9 +254,13 @@ class Game(object):
         try:
             theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
         except:
-            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + 1))
+            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + .01))
         thetaPrime = math.pi - math.pi/2 - theta
 
+        if theta <= 0 and theta >= -1.4: self.rightDownSwing[i] = False
+        elif theta >= 0: self.rightDownSwing[i] = True
+        if theta < -1.4 and self.rightDownSwing[i]:
+            theta = 1.57
         self.rightArmAngle[i] = theta
 
     def updateHands(self, joints, i):
