@@ -244,6 +244,11 @@ class Game(object):
         self.xRightHand[i], self.yRightHand[i] = self.data(joints, "HandRight")
         self.xLeftHand[i], self.yLeftHand[i] = self.data(joints, "HandLeft")
 
+    def updateAllGUI(self):
+        for body in self.trackedBodies:
+            i = self.trackedBodies[body][0]
+            self.updateGUI(i)
+
     def updateGUI(self, i):
         rHandX = self.sensorToScreenX(self.xRightHand[i])
         rHandY = self.sensorToScreenY(self.yRightHand[i])
@@ -273,7 +278,6 @@ class Game(object):
                 self.closetModel.shapes.pop()
             self.mode = self.MENU
         # Update all modes
-        print(self.mode)
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY)
@@ -314,8 +318,8 @@ class Game(object):
         if rHandY < 30 and lHandY < 30:
             for shape in self.model.shapes:
                 shape.colors = self.nextColors
-
-                # self.modelAngle += 1
+        # Rotation of Closet
+        # self.modelAngle += 1
         # for i in range(len(self.model.shapes)):
         #     if i == 0: pass
         #     else:
@@ -411,70 +415,72 @@ class Game(object):
         if self.mode == self.DESIGN:
             self.screen.blit(self.design,(760,0))
 
+    def updateBodies(self):
+        for i in range(self.kinect.max_body_count):
+            body = self.bodies.bodies[i]
+
+            if i in self.trackedBodies: self.trackedBodies[i][1] = False
+            if body.is_tracked:
+                if i in self.trackedBodies:
+                    self.trackedBodies[i][1] = True
+                else:
+                    prevLen = len(self.trackedBodies)
+                    self.trackedBodies[i] = [prevLen, True]
+                    self.model.shapes.append(
+                        shirt(0, 0, 0, self.frameSurface,
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)]))
+                joints = body.joints
+                self.updateArms(joints, self.trackedBodies[i][0])
+                self.updateHands(joints, self.trackedBodies[i][0])
+                self.updateBody(joints, self.trackedBodies[i][0])
+        self.removeUntrackedBodies()
+
+    def removeUntrackedBodies(self):
+        rmData = [] # Stores (index, trackedBody)
+        for checkBody in self.trackedBodies:
+            if not self.trackedBodies[checkBody][1]:
+                rmIndex = self.trackedBodies[checkBody][0]
+                rmData.append((rmIndex,checkBody))
+                for otherBody in self.trackedBodies:
+                    otherIndex = self.trackedBodies[otherBody][0]
+                    if otherIndex > rmIndex:
+                        self.trackedBodies[otherBody][0] -= 1
+
+        for rm in rmData:
+            shape = self.model.shapes[rm[0]]
+            self.model.shapes.remove(shape)
+            checkBody = rm[1]
+            self.trackedBodies.pop(checkBody)
+
+    def drawAll(self):
+        self.model.draw()
+        self.closetModel.draw()
+        self.updateAllGUI()
+        self.drawGUI()
 
     def runLoop(self):
         # Pygame events
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return False
+            if event.type == pygame.QUIT: return False
         # Reads and processes body frame from kinect
         if self.kinect.has_new_body_frame():
             self.bodies = self.kinect.get_last_body_frame()
-            for i in range(self.kinect.max_body_count):
-                body = self.bodies.bodies[i]
-                print(self.trackedBodies)
-
-                if i in self.trackedBodies:
-                    self.trackedBodies[i][1] = False
-                if body.is_tracked:
-                    if i in self.trackedBodies:
-                        self.trackedBodies[i][1] = True
-                    else:
-                        prevLen = len(self.trackedBodies)
-                        self.trackedBodies[i] = [prevLen, True]
-                        self.model.shapes.append(
-                            shirt(0, 0, 0, self.frameSurface,
-                            [(43, 156, 54),(200,0,0),(61, 187, 198)]))
-                    joints = body.joints
-                    self.updateArms(joints, self.trackedBodies[i][0])
-                    self.updateHands(joints, self.trackedBodies[i][0])
-                    self.updateBody(joints, self.trackedBodies[i][0])
-
-            rmData = [] # Stores (index, trackedBody)
-            for checkBody in self.trackedBodies:
-                if not self.trackedBodies[checkBody][1]:
-                    rmIndex = self.trackedBodies[checkBody][0]
-                    rmData.append((rmIndex,checkBody))
-                    for otherBody in self.trackedBodies:
-                        otherIndex = self.trackedBodies[otherBody][0]
-                        if otherIndex > rmIndex:
-                            self.trackedBodies[otherBody][0] -= 1
-
-            for rm in rmData:
-                shape = self.model.shapes[rm[0]]
-                self.model.shapes.remove(shape)
-                checkBody = rm[1]
-                self.trackedBodies.pop(checkBody)
-
+            self.updateBodies()
         # KeyPresses
         key = pygame.key.get_pressed()
-        if sum(key) > 0:
-            self.model.cam.keyPressed(key, self.model)
-
+        if sum(key) > 0: self.model.cam.keyPressed(key, self.model)
         # reads color images from kinect
         if self.kinect.has_new_color_frame():
             frame = self.kinect.get_last_color_frame()
             self.drawColorFrame(frame, self.frameSurface)
             frame = None
+        self.drawScreen()
+        if self.done: return False
+        self.clock.tick(60)
+        return True
 
-        self.model.draw()
-        self.closetModel.draw()
-
-        for body in self.trackedBodies:
-            i = self.trackedBodies[body][0]
-            self.updateGUI(i)
-        self.drawGUI()
-
+    def drawScreen(self):
+        self.drawAll()
         # changes ratio of image to output to window
         h_to_w = float(
             self.frameSurface.get_height() /
@@ -485,16 +491,10 @@ class Game(object):
             self.frameSurface,
             (self.screen.get_width(), target_height)
         )
-
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         self.blitGUI()
         pygame.display.update()
-
-        if self.done: return False
-
-        self.clock.tick(60)
-        return True
 
     def run(self):
         while self.runLoop():
