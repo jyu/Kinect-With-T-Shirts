@@ -471,14 +471,16 @@ class shirt(object):
 
     def updateLeftSleeve(self, xSide, ySide, leftAng, angleXZ, view):
         # Left Sleeve
-        XOperations, YOperations = [2.5,.5,.5,2.5], [-0.5,-0.5,-1,-1]
+        XOperations, YOperations = [2.3,.5,.5,2.3], [-0.5,-0.5,-1,-1]
         index = 6
         for zOp in [.6,1.6]:
             for i in range(len(XOperations)):
                 xOp, yOp = XOperations[i], YOperations[i]
                 x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
                 # Translate to shoulder to rotate and translate back
-                x, y = x - xSide, y + ySide
+                if leftAng >= 0: preX, preY = -30, 0
+                else: preX,preY = 0, -20
+                x, y = x - xSide + preX, y + ySide + preY
                 x, y, z = self.rotate(
                               x, y, z,
                               leftAng,
@@ -497,33 +499,67 @@ class shirt(object):
                 # self.points[index].updateDrawCoord
                 self.points.append(Point(x, y, z, self.surface, view))
                 # index += 1
-
     def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
-        # Right Sleeve
-        index = 12
-        XOperations, YOperations = [-2.5,-.5,-.5,-2.5], [-0.6,-0.6,-1,-1]
-        for zOp in [.6,1.6]:
-            for i in range(len(XOperations)):
-                xOp, yOp = XOperations[i], YOperations[i]
-                x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
-                x, y = x + xSide, y + ySide - 20
-                x, y, z = self.rotate(
-                              x, y, z,
-                               -rightAng,
-                              "XY"
-                              )
-                x, y = x - xSide + 50, y - ySide
-                x, y, z = self.rotate(
-                              x, y, z,
-                              angleXZ,
-                              "XZ"
-                              )
+            # Right Sleeve
+            index = 0
+            XOperations, YOperations = [-2.3,-.5,-.5,-2.3], [-0.5,-0.5,-1,-1]
+            for zOp in [.6,1.6]:
+                for i in range(len(XOperations)):
+                    xOp, yOp = XOperations[i], YOperations[i]
+                    x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
+                    if rightAng <= 0: preX, preY = 30, 0
+                    else: preX,preY = 0, -20
+                    x, y = x + xSide + preX, y + ySide + preY
+                    x, y, z = self.rotate(
+                                  x, y, z,
+                                   -rightAng,
+                                  "XY"
+                                  )
+                    if index in [1,2,5,6] and rightAng < 0:
+                        print('lifting', rightAng)
+                        yLift = -30
+                    else: yLift = 0
+                    x, y = x - xSide + 50, y - ySide + 30 + yLift
+                    x, y, z = self.rotate(
+                                  x, y, z,
+                                  angleXZ,
+                                  "XZ"
+                                  )
 
-                # self.points[index].set(x, y, z, view)
-                # self.points[index].updateDrawCoord
+                    # self.points[index].set(x, y, z, view)
+                    # self.points[index].updateDrawCoord
 
-                self.points.append(Point(x, y, z, self.surface, view))
-                # index += 1
+                    self.points.append(Point(x, y, z, self.surface, view))
+                    index += 1
+
+    # def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
+    #     # Right Sleeve
+    #     index = 12
+    #     XOperations, YOperations = [-2.5,-.5,-.5,-2.5], [-0.5,-0.5,-1,-1]
+    #     for zOp in [.6,1.6]:
+    #         for i in range(len(XOperations)):
+    #             xOp, yOp = XOperations[i], YOperations[i]
+    #             x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
+    #             if rightAng >= 0: preX, preY = 30, 0
+    #             else: preX,preY = 0, -20
+    #             x, y = x - xSide + preX, y + ySide + preY
+    #             x, y, z = self.rotate(
+    #                           x, y, z,
+    #                            -rightAng,
+    #                           "XY"
+    #                           )
+    #             x, y = x - xSide + 50, y - ySide
+    #             x, y, z = self.rotate(
+    #                           x, y, z,
+    #                           angleXZ,
+    #                           "XZ"
+    #                           )
+
+    #             # self.points[index].set(x, y, z, view)
+    #             # self.points[index].updateDrawCoord
+
+    #             self.points.append(Point(x, y, z, self.surface, view))
+    #             # index += 1
 
     def updateTop(self, xSide, ySide, angleXZ, view):
         # Right Sleeve
