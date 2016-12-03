@@ -420,10 +420,11 @@ class Game(object):
                 )
 
     def blitGUI(self):
-        if self.mode == self.MENU:
-            self.screen.blit(self.menu,(760,0))
-        if self.mode == self.DESIGN:
-            self.screen.blit(self.design,(760,0))
+        if self.mode == self.MENU: self.screen.blit(self.menu,(760,0))
+        if self.mode == self.DESIGN: self.screen.blit(self.design,(760,0))
+        if self.mode == self.DESIGNFRONT:
+            if self.sign == 1: self.screen.blit(self.addMode,(0,100))
+            if self.sign == -1: self.screen.blit(self.addMode,(0,100))
 
     def updateBodies(self):
         for i in range(self.kinect.max_body_count):
