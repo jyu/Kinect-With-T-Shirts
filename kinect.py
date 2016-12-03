@@ -78,6 +78,7 @@ class Game(object):
         self.design = pygame.image.load("design.png")
         self.addMode = pygame.image.load("addMode.png")
         self.minusMode = pygame.image.load("minusMode.png")
+        self.palette = pygame.image.load("palette.png")
 
     def initScreenVar(self):
         # screen variables
@@ -423,8 +424,9 @@ class Game(object):
         if self.mode == self.MENU: self.screen.blit(self.menu,(760,0))
         if self.mode == self.DESIGN: self.screen.blit(self.design,(760,0))
         if self.mode == self.DESIGNFRONT:
+            self.screen.blit(self.palette, (617,0))
             if self.sign == 1: self.screen.blit(self.addMode,(0,100))
-            if self.sign == -1: self.screen.blit(self.addMode,(0,100))
+            elif self.sign == -1: self.screen.blit(self.minusMode,(0,100))
 
     def updateBodies(self):
         for i in range(self.kinect.max_body_count):
