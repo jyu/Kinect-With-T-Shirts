@@ -182,13 +182,15 @@ class Game(object):
         bodyZ = zAvg * 600/1.5
         #bodyZ = 600
         #print(zAvg)
-
         bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
         bodyCenterY = ((bodyY1 + bodyY2) / 2) - 540
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2)
         # Rotation calculations
         angleXZ = 3.8/5 * self.getAngleXZ(i)
+        print(angleXZ, bodyCenterX)
+        print(self.angleCorrection(bodyCenterX))
+        angleXZ += self.angleCorrection(bodyCenterX)
         # Update body shape in model
         self.model.shapes[i].update(bodyCenterX,bodyCenterY,
                                     bodyWidth,bodyHeight,
@@ -196,6 +198,12 @@ class Game(object):
                                     self.leftArmAngle[i],
                                     self.rightArmAngle[i],
                                     bodyZ)
+    def angleCorrection(self, bodyX):
+        # As person moves along the X, there is automatic angle added on because
+        # of difference in Z of shoulders. This function corrects it so standing
+        # straight on an X shold give an angleXZ of 0
+        return -1 * (bodyX**3 * -4*10**-8 + bodyX**2 * 6*10**-6 -
+                    bodyX * 0.0081)
 
     def getAngleXZ(self, i):
         # Compares shoulder width difference and depth differences to get angle
