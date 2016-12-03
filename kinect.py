@@ -69,13 +69,15 @@ class Game(object):
         self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
         self.frontColor = [50,50,50]
         self.nextMode = None
-        self.lock = False
+        self.lock = [False, False, False, False, False, False]
         self.sign = 1
-        self.flipLock = False
+        self.flipLock = [False, False, False, False, False, False]
 
     def initPics(self):
         self.menu = pygame.image.load("menu.png")
         self.design = pygame.image.load("design.png")
+        self.addMode = pygame.image.load("addMode.png")
+        self.minusMode = pygame.image.load("minusMode.png")
 
     def initScreenVar(self):
         # screen variables
@@ -289,7 +291,7 @@ class Game(object):
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY)
-        elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY)
+        elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY,i)
 
     def updateMenu(self,rHandX,rHandY):
         # Menu processing
@@ -346,26 +348,26 @@ class Game(object):
         if rHandX < 1300 and self.nextMode != None:
             self.mode = self.nextMode
 
-    def updateFront(self, rHandX, rHandY, lHandY):
+    def updateFront(self, rHandX, rHandY, lHandY, i):
         # Flip sign gesture
-        if abs(rHandY-lHandY) >= 800 and self.flipLock == False:
+        if abs(rHandY-lHandY) >= 800 and self.flipLock[i] == False:
             print('flip')
             self.sign *= -1
-            self.flipLock = True
-        if abs(rHandY-lHandY) <= 500 and self.flipLock == True:
-            self.flipLock = False
+            self.flipLock[i] = True
+        if abs(rHandY-lHandY) <= 500 and self.flipLock[i] == True:
+            self.flipLock[i] = False
         # Right Panel
         if rHandX >= 1520:
-            if not self.lock:
+            if not self.lock[i]:
                 if rHandY <= 360:
                     self.frontColor[0] += 20 * self.sign
                 elif rHandY > 360 and rHandY < 720:
                     self.frontColor[1] += 20 * self.sign
                 elif rHandY < 1080:
                     self.frontColor[2] += 20 * self.sign
-            self.lock = True
+            self.lock[i] = True
         if rHandX <= 1400:
-            self.lock = False
+            self.lock[i] = False
         self.frontColor[0] = min(255, self.frontColor[0])
         self.frontColor[1] = min(255, self.frontColor[1])
         self.frontColor[2] = min(255, self.frontColor[2])
@@ -387,7 +389,7 @@ class Game(object):
             self.frameSurface,
             (255,255,255),
             False,
-            ([(170,30),(30,30),(30,100),(170,100),(30,100),(30,170),(170,170)]),
+            ([(140,50),(50,50),(50,100),(140,100),(50,100),(50,150),(140,150)]),
             10
             )
 
