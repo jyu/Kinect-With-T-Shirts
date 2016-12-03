@@ -47,9 +47,13 @@ class Game(object):
         self.model = Model(
                         self.frameSurface,
                         [
-                        shirt(0, 0, 0, self.frameSurface,
-                            [(43, 156, 54),(200,0,0),(61, 187, 198)])
+                        # shirt(0, 0, 0, self.frameSurface,
+                        #     [(43, 156, 54),(200,0,0),(61, 187, 198)])
                         ])
+        self.closetModel = Model(
+                                self.frameSurface,
+                                [],
+                                )
         self.initPics()
         self.initGUIVars()
 
@@ -65,13 +69,16 @@ class Game(object):
         self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
         self.frontColor = [50,50,50]
         self.nextMode = None
-        self.lock = False
+        self.lock = [False, False, False, False, False, False]
         self.sign = 1
-        self.flipLock = False
+        self.flipLock = [False, False, False, False, False, False]
 
     def initPics(self):
         self.menu = pygame.image.load("menu.png")
         self.design = pygame.image.load("design.png")
+        self.addMode = pygame.image.load("addMode.png")
+        self.minusMode = pygame.image.load("minusMode.png")
+        self.palette = pygame.image.load("palette.png")
 
     def initScreenVar(self):
         # screen variables
@@ -90,31 +97,33 @@ class Game(object):
         self.initArm()
 
     def initShoulderHip(self):
-        self.yLeftShoulder = 0
-        self.xLeftShoulder = 0
-        self.zLeftShoulder = 0
-        self.xRightShoulder = 0
-        self.yRightShoulder = 0
-        self.zRightShoulder = 0
-        self.xLeftHip = 0
-        self.yLeftHip = 0
-        self.zLeftHip = 0
-        self.xRightHip = 0
-        self.yRightHip = 0
-        self.zRightHip = 0
+        self.yLeftShoulder = [0,0,0,0,0,0]
+        self.xLeftShoulder = [0,0,0,0,0,0]
+        self.zLeftShoulder = [0,0,0,0,0,0]
+        self.xRightShoulder = [0,0,0,0,0,0]
+        self.yRightShoulder = [0,0,0,0,0,0]
+        self.zRightShoulder = [0,0,0,0,0,0]
+        self.xLeftHip = [0,0,0,0,0,0]
+        self.yLeftHip = [0,0,0,0,0,0]
+        self.zLeftHip = [0,0,0,0,0,0]
+        self.xRightHip = [0,0,0,0,0,0]
+        self.yRightHip = [0,0,0,0,0,0]
+        self.zRightHip = [0,0,0,0,0,0]
 
 
     def initArm(self):
-        self.xLeftElbow = 1
-        self.yLeftElbow = 1
-        self.xRightElbow = 1
-        self.yRightElbow = 1
-        self.leftArmAngle = 0
-        self.rightArmAngle = 0
-        self.xRightHand = 0
-        self.yRightHand = 0
-        self.xLeftHand = 0
-        self.yLeftHand = 0
+        self.xLeftElbow = [1,1,1,1,1,1]
+        self.yLeftElbow = [1,1,1,1,1,1]
+        self.xRightElbow = [1,1,1,1,1,1]
+        self.yRightElbow = [1,1,1,1,1,1]
+        self.leftArmAngle = [0,0,0,0,0,0]
+        self.rightArmAngle = [0,0,0,0,0,0]
+        self.xRightHand = [0,0,0,0,0,0]
+        self.yRightHand = [0,0,0,0,0,0]
+        self.xLeftHand = [0,0,0,0,0,0]
+        self.yLeftHand = [0,0,0,0,0,0]
+        self.leftDownSwing = [True, True, True, True, True, True]
+        self.rightDownSwing = [True, True, True, True, True, True]
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -145,31 +154,31 @@ class Game(object):
         if z: return (ret.x,ret.y,ret.z)
         return (ret.x, ret.y)
 
-    def updateBody(self, joints):
+    def updateBody(self, joints, i):
         # Update body trackers
-        (self.xLeftHip,
-        self.yLeftHip,
-        self.zLeftHip) = self.data(joints, "HipLeft", True)
-        (self.xRightHip,
-        self.yRightHip,
-        self.zRightHip) = self.data(joints, "HipRight", True)
-        (self.xLeftShoulder,
-        self.yLeftShoulder,
-        self.zLeftShoulder) = self.data(joints, "ShoulderLeft", True)
-        (self.xRightShoulder,
-        self.yRightShoulder,
-        self.zRightShoulder) = self.data(joints, "ShoulderRight", True)
+        (self.xLeftHip[i],
+        self.yLeftHip[i],
+        self.zLeftHip[i]) = self.data(joints, "HipLeft", True)
+        (self.xRightHip[i],
+        self.yRightHip[i],
+        self.zRightHip[i]) = self.data(joints, "HipRight", True)
+        (self.xLeftShoulder[i],
+        self.yLeftShoulder[i],
+        self.zLeftShoulder[i]) = self.data(joints, "ShoulderLeft", True)
+        (self.xRightShoulder[i],
+        self.yRightShoulder[i],
+        self.zRightShoulder[i]) = self.data(joints, "ShoulderRight", True)
 
-        self.updateBodyVars()
+        self.updateBodyVars(i)
 
-    def updateBodyVars(self):
+    def updateBodyVars(self, i):
         # XYZ movement calculations
-        rightPart = (self.xRightShoulder + self.xRightHip) / 2
-        leftPart = (self.xLeftShoulder + self.xLeftHip) / 2
-        upPart = (self.yRightShoulder + self.yLeftShoulder) / 2
-        downPart = (self.yRightHip + self.yLeftHip) / 2
-        zAvg = (self.zRightShoulder + self.zLeftShoulder
-                + self.zRightHip + self.zLeftHip) / 4
+        rightPart = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
+        leftPart = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
+        upPart = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
+        downPart = (self.yRightHip[i] + self.yLeftHip[i]) / 2
+        zAvg = (self.zRightShoulder[i] + self.zLeftShoulder[i]
+                + self.zRightHip[i] + self.zLeftHip[i]) / 4
         # Converts sensor coords to pygame screen coords
         bodyX1 = self.sensorToScreenX(rightPart) + 50
         bodyY1 = self.sensorToScreenY(upPart)
@@ -178,73 +187,96 @@ class Game(object):
         bodyZ = zAvg * 600/1.5
         #bodyZ = 600
         #print(zAvg)
-
         bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
         bodyCenterY = ((bodyY1 + bodyY2) / 2) - 540
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2)
         # Rotation calculations
-        angleXZ = 3.8/5 * self.getAngleXZ()
+        angleXZ = 3.8/5 * self.getAngleXZ(i)
+        #print(angleXZ, bodyCenterX)
+        #print(self.angleCorrection(bodyCenterX))
+        angleXZ += self.angleCorrection(bodyCenterX)
         # Update body shape in model
-        self.model.shapes[0].update(bodyCenterX,bodyCenterY,
+        self.model.shapes[i].update(bodyCenterX,bodyCenterY,
                                     bodyWidth,bodyHeight,
                                     angleXZ,
-                                    self.leftArmAngle,
-                                    self.rightArmAngle,
+                                    self.leftArmAngle[i],
+                                    self.rightArmAngle[i],
                                     bodyZ)
 
-    def getAngleXZ(self):
+    def angleCorrection(self, bodyX):
+        # As person moves along the X, there is automatic angle added on because
+        # of difference in Z of shoulders. This function corrects it so standing
+        # straight on an X shold give an angleXZ of 0
+        return -1 * (bodyX**3 * -4*10**-8 + bodyX**2 * 6*10**-6 -
+                    bodyX * 0.0081)
+
+    def getAngleXZ(self, i):
         # Compares shoulder width difference and depth differences to get angle
         # Convert to degrees for debugging and testing readibility
-        return (math.atan2(self.zRightShoulder - self.zLeftShoulder,
-                          self.xRightShoulder - self.xLeftShoulder)
+        return (math.atan2(self.zRightShoulder[i] - self.zLeftShoulder[i],
+                          self.xRightShoulder[i] - self.xLeftShoulder[i])
                            * 180.0/math.pi)
 
-    def updateArms(self, joints):
+    def updateArms(self, joints, i):
         # Updates arm variables
-        self.xLeftElbow, self.yLeftElbow = self.data(joints, "ElbowLeft")
-        self.xRightElbow, self.yRightElbow = self.data(joints, "ElbowRight")
-        self.updateLeftArm()
-        self.updateRightArm()
+        self.xLeftElbow[i], self.yLeftElbow[i] = self.data(joints, "ElbowLeft")
+        self.xRightElbow[i], self.yRightElbow[i] = self.data(joints, "ElbowRight")
+        self.updateLeftArm(i)
+        self.updateRightArm(i)
 
-    def updateLeftArm(self):
+    def updateLeftArm(self, i):
         # left arm
-        xShould = self.sensorToScreenX(self.xLeftShoulder)
-        yShould = self.sensorToScreenY(self.yLeftShoulder) + 40
-        xElb = self.sensorToScreenX(self.xLeftElbow)
-        yElb = self.sensorToScreenY(self.yLeftElbow)
+        xShould = self.sensorToScreenX(self.xLeftShoulder[i])
+        yShould = self.sensorToScreenY(self.yLeftShoulder[i]) + 40
+        xElb = self.sensorToScreenX(self.xLeftElbow[i])
+        yElb = self.sensorToScreenY(self.yLeftElbow[i])
 
         try:
             theta = math.atan((yShould - yElb)/(xElb - xShould))
         except:
-            theta = math.atan((yShould - yElb)/(xElb - xShould + 1))
+            theta = math.atan((yShould - yElb)/(xElb - xShould + .01))
         thetaPrime = math.pi - math.pi/2 - theta
 
-        self.leftArmAngle = theta
+        if theta <= 0 and theta >= -1.4: self.leftDownSwing[i] = False
+        elif theta >= 0: self.leftDownSwing[i] = True
+        if theta < -1.4 and self.leftDownSwing[i]:
+            theta = 1.57
 
-    def updateRightArm(self):
+        self.leftArmAngle[i] = theta
+
+    def updateRightArm(self, i):
         # right arm
-        xShould = self.sensorToScreenX(self.xRightShoulder)
-        yShould = self.sensorToScreenY(self.yRightShoulder) + 40
-        xElb = self.sensorToScreenX(self.xRightElbow)
-        yElb = self.sensorToScreenY(self.yRightElbow)
+        xShould = self.sensorToScreenX(self.xRightShoulder[i])
+        yShould = self.sensorToScreenY(self.yRightShoulder[i]) + 40
+        xElb = self.sensorToScreenX(self.xRightElbow[i])
+        yElb = self.sensorToScreenY(self.yRightElbow[i])
         try:
             theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
         except:
-            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + 1))
+            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + .01))
         thetaPrime = math.pi - math.pi/2 - theta
 
-        self.rightArmAngle = theta
+        if theta <= 0 and theta >= -1.4: self.rightDownSwing[i] = False
+        elif theta >= 0: self.rightDownSwing[i] = True
+        if theta < -1.4 and self.rightDownSwing[i]:
+            theta = 1.57
+        self.rightArmAngle[i] = theta
 
-    def updateHands(self, joints):
-        self.xRightHand, self.yRightHand = self.data(joints, "HandRight")
-        self.xLeftHand, self.yLeftHand = self.data(joints, "HandLeft")
+    def updateHands(self, joints, i):
+        self.xRightHand[i], self.yRightHand[i] = self.data(joints, "HandRight")
+        self.xLeftHand[i], self.yLeftHand[i] = self.data(joints, "HandLeft")
 
-    def updateGUI(self):
-        rHandX = self.sensorToScreenX(self.xRightHand)
-        rHandY = self.sensorToScreenY(self.yRightHand)
-        lHandX = self.sensorToScreenX(self.xLeftHand)
-        lHandY = self.sensorToScreenY(self.yLeftHand)
+    def updateAllGUI(self):
+        for body in self.trackedBodies:
+            i = self.trackedBodies[body][0]
+            self.updateGUI(i)
+
+    def updateGUI(self, i):
+        rHandX = self.sensorToScreenX(self.xRightHand[i])
+        rHandY = self.sensorToScreenY(self.yRightHand[i])
+        lHandX = self.sensorToScreenX(self.xLeftHand[i])
+        lHandY = self.sensorToScreenY(self.yLeftHand[i])
 
         # Draw Hands
         # pygame.draw.rect(
@@ -264,15 +296,15 @@ class Game(object):
         # Back to menu, gesture
         elif abs(lHandX-rHandX) <= 30 and abs(lHandY-rHandY) <= 30 and rHandY > 30:
             if self.mode == self.CLOSET:
-                self.model.shapes.pop()
-                self.model.shapes.pop()
-                self.model.shapes.pop()
+                self.closetModel.shapes.pop()
+                self.closetModel.shapes.pop()
+                self.closetModel.shapes.pop()
             self.mode = self.MENU
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY)
-        elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY)
+        elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY,i)
 
     def updateMenu(self,rHandX,rHandY):
         # Menu processing
@@ -280,7 +312,7 @@ class Game(object):
         if rHandX >= 1520:
             if rHandY <= 360:
                 self.mode = self.CLOSET
-                self.model.shapes.extend(
+                self.closetModel.shapes.extend(
                     [
                     shirt(800, -400, 0, self.frameSurface,
                         [(43, 156, 54),(200,0,0),(61, 187, 198)],
@@ -307,9 +339,10 @@ class Game(object):
                 self.nextColors = [(61, 187, 198),(43, 156, 54),(200,0,0)]
         # Change Colors
         if rHandY < 30 and lHandY < 30:
-            self.model.shapes[0].colors = self.nextColors
-
-                # self.modelAngle += 1
+            for shape in self.model.shapes:
+                shape.colors = self.nextColors
+        # Rotation of Closet
+        # self.modelAngle += 1
         # for i in range(len(self.model.shapes)):
         #     if i == 0: pass
         #     else:
@@ -328,26 +361,26 @@ class Game(object):
         if rHandX < 1300 and self.nextMode != None:
             self.mode = self.nextMode
 
-    def updateFront(self, rHandX, rHandY, lHandY):
+    def updateFront(self, rHandX, rHandY, lHandY, i):
         # Flip sign gesture
-        if abs(rHandY-lHandY) >= 800 and self.flipLock == False:
+        if abs(rHandY-lHandY) >= 800 and self.flipLock[i] == False:
             print('flip')
             self.sign *= -1
-            self.flipLock = True
-        if abs(rHandY-lHandY) <= 500 and self.flipLock == True:
-            self.flipLock = False
+            self.flipLock[i] = True
+        if abs(rHandY-lHandY) <= 500 and self.flipLock[i] == True:
+            self.flipLock[i] = False
         # Right Panel
         if rHandX >= 1520:
-            if not self.lock:
+            if not self.lock[i]:
                 if rHandY <= 360:
                     self.frontColor[0] += 20 * self.sign
                 elif rHandY > 360 and rHandY < 720:
                     self.frontColor[1] += 20 * self.sign
                 elif rHandY < 1080:
                     self.frontColor[2] += 20 * self.sign
-            self.lock = True
+            self.lock[i] = True
         if rHandX <= 1400:
-            self.lock = False
+            self.lock[i] = False
         self.frontColor[0] = min(255, self.frontColor[0])
         self.frontColor[1] = min(255, self.frontColor[1])
         self.frontColor[2] = min(255, self.frontColor[2])
@@ -355,7 +388,8 @@ class Game(object):
         self.frontColor[1] = max(0, self.frontColor[1])
         self.frontColor[2] = max(0, self.frontColor[2])
 
-        self.model.shapes[0].colors[1] = tuple(self.frontColor)
+        for shape in self.model.shapes:
+            shape.colors[1] = tuple(self.frontColor)
 
     def drawGUI(self):
         # Exit
@@ -368,7 +402,7 @@ class Game(object):
             self.frameSurface,
             (255,255,255),
             False,
-            ([(170,30),(30,30),(30,100),(170,100),(30,100),(30,170),(170,170)]),
+            ([(140,50),(50,50),(50,100),(140,100),(50,100),(50,150),(140,150)]),
             10
             )
 
@@ -399,52 +433,79 @@ class Game(object):
                 )
 
     def blitGUI(self):
-        if self.mode == self.MENU:
-            self.screen.blit(self.menu,(760,0))
-        if self.mode == self.DESIGN:
-            self.screen.blit(self.design,(760,0))
+        if self.mode == self.MENU: self.screen.blit(self.menu,(760,0))
+        if self.mode == self.DESIGN: self.screen.blit(self.design,(760,0))
+        if self.mode == self.DESIGNFRONT:
+            self.screen.blit(self.palette, (617,0))
+            if self.sign == 1: self.screen.blit(self.addMode,(0,100))
+            elif self.sign == -1: self.screen.blit(self.minusMode,(0,100))
 
+    def updateBodies(self):
+        for i in range(self.kinect.max_body_count):
+            body = self.bodies.bodies[i]
+
+            if i in self.trackedBodies: self.trackedBodies[i][1] = False
+            if body.is_tracked:
+                if i in self.trackedBodies:
+                    self.trackedBodies[i][1] = True
+                else:
+                    prevLen = len(self.trackedBodies)
+                    self.trackedBodies[i] = [prevLen, True]
+                    self.model.shapes.append(
+                        shirt(0, 0, 0, self.frameSurface,
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)]))
+                joints = body.joints
+                self.updateArms(joints, self.trackedBodies[i][0])
+                self.updateHands(joints, self.trackedBodies[i][0])
+                self.updateBody(joints, self.trackedBodies[i][0])
+        self.removeUntrackedBodies()
+
+    def removeUntrackedBodies(self):
+        rmData = [] # Stores (index, trackedBody)
+        for checkBody in self.trackedBodies:
+            if not self.trackedBodies[checkBody][1]:
+                rmIndex = self.trackedBodies[checkBody][0]
+                rmData.append((rmIndex,checkBody))
+                for otherBody in self.trackedBodies:
+                    otherIndex = self.trackedBodies[otherBody][0]
+                    if otherIndex > rmIndex:
+                        self.trackedBodies[otherBody][0] -= 1
+
+        for rm in rmData:
+            shape = self.model.shapes[rm[0]]
+            self.model.shapes.remove(shape)
+            checkBody = rm[1]
+            self.trackedBodies.pop(checkBody)
+
+    def drawAll(self):
+        self.model.draw()
+        self.closetModel.draw()
+        self.updateAllGUI()
+        self.drawGUI()
 
     def runLoop(self):
         # Pygame events
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return False
+            if event.type == pygame.QUIT: return False
         # Reads and processes body frame from kinect
         if self.kinect.has_new_body_frame():
             self.bodies = self.kinect.get_last_body_frame()
-            for i in range(self.kinect.max_body_count):
-                body = self.bodies.bodies[i]
-                print(self.trackedBodies)
-                if body.is_tracked:
-                    if i in self.trackedBodies:
-                        self.trackedBodies[i][1] = True
-                    else:
-                        prevLen = len(trackedBodies)
-                        self.trackedBodies[i] = [prevLen, True]
-                    joints = body.joints
-                    self.updateArms(joints, self.trackedBodies[i][0])
-                    self.updateHands(joints, self.trackedBodies[i][0])
-                    self.updateBody(joints, self.trackedBodies[i][0])
-            for checkBody in self.trackedBodies:
-                if not self.trackedBodies[checkBody][1]:
-                    self.trackedBodies.pop(checkBody)
-
+            self.updateBodies()
         # KeyPresses
         key = pygame.key.get_pressed()
-        if sum(key) > 0:
-            self.model.cam.keyPressed(key, self.model)
-
+        if sum(key) > 0: self.model.cam.keyPressed(key, self.model)
         # reads color images from kinect
         if self.kinect.has_new_color_frame():
             frame = self.kinect.get_last_color_frame()
             self.drawColorFrame(frame, self.frameSurface)
             frame = None
+        self.drawScreen()
+        if self.done: return False
+        self.clock.tick(60)
+        return True
 
-        self.model.draw()
-        self.updateGUI()
-        self.drawGUI()
-
+    def drawScreen(self):
+        self.drawAll()
         # changes ratio of image to output to window
         h_to_w = float(
             self.frameSurface.get_height() /
@@ -455,16 +516,10 @@ class Game(object):
             self.frameSurface,
             (self.screen.get_width(), target_height)
         )
-
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         self.blitGUI()
         pygame.display.update()
-
-        if self.done: return False
-
-        self.clock.tick(60)
-        return True
 
     def run(self):
         while self.runLoop():
@@ -474,3 +529,4 @@ class Game(object):
 
 game = Game()
 game.run()
+
