@@ -12,6 +12,8 @@ design multiplayer bug (leftXY, rightXY interactions)
 
 
 design interface
-screenshotting
+screenshotting (done)
 
-better design
+
+DESIGN
+record video to show kosbie during OH
