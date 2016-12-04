@@ -295,7 +295,7 @@ class Game(object):
         if lHandX < 200 and lHandY < 200:
             self.done = True
         # Back to menu, gesture
-        elif abs(lHandX-rHandX) <= 30 and abs(lHandY-rHandY) <= 30 and rHandY > 30:
+        elif abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and rHandY > 30:
             if self.mode == self.CLOSET:
                 self.closetModel.shapes.pop()
                 self.closetModel.shapes.pop()
@@ -304,7 +304,7 @@ class Game(object):
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
-        elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY)
+        elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY,i)
 
     def updateMenu(self,rHandX,rHandY):
