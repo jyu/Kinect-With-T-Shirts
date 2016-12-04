@@ -337,7 +337,7 @@ class Game(object):
                 self.tempScreenshot = None
             self.mode = self.MENU
         # Update all modes
-        if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
+        if self.mode == self.MENU: self.updateMenu(rHandX,rHandY,i)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNFRONT:
@@ -352,30 +352,32 @@ class Game(object):
                 (200,200,200),
                 ((288-40)-30,(162-40),2*(672+40),2*(378+40))
                 )
-        if rHandX >= 1620:
-            mainPath = os.getcwd()
-            os.chdir("screenshots")
-            if rHandY <= 360:
-                for fileName in os.listdir("."):
-                    if fileName.startswith("screenshot"):
-                        self.screenshotCount += 1
-                        name = "picture%d.png" % (self.screenshotCount)
-                        os.rename(fileName, name)
-                self.screenshot = None
-                self.tempScreenshot = None
-                self.mode = self.MENU
-            elif rHandY > 360 and rHandY < 720:
-                os.remove("screenshot.png")
-                self.screenshot = None
-                self.tempScreenshot = None
-                self.mode = self.MENU
-            elif rHandY < 1080:
-                os.remove("screenshot.png")
-                self.screenshot = None
-                self.tempScreenshot = None
-                self.mode = self.CAMERA
-
-            os.chdir(mainPath)
+        if rHandX >= 1620 and not self.lock[i]:
+            if not self.lock[i]:
+                mainPath = os.getcwd()
+                os.chdir("screenshots")
+                if rHandY <= 360:
+                    for fileName in os.listdir("."):
+                        if fileName.startswith("screenshot"):
+                            self.screenshotCount += 1
+                            name = "picture%d.png" % (self.screenshotCount)
+                            os.rename(fileName, name)
+                    self.screenshot = None
+                    self.tempScreenshot = None
+                    self.nextMode = self.MENU
+                elif rHandY > 360 and rHandY < 720:
+                    os.remove("screenshot.png")
+                    self.screenshot = None
+                    self.tempScreenshot = None
+                    self.nextMode = self.MENU
+                elif rHandY < 1080:
+                    os.remove("screenshot.png")
+                    self.screenshot = None
+                    self.tempScreenshot = None
+                    self.nextMode = self.CAMERA
+                self.mode = self.nextMode
+                self.lock[i] = True
+                os.chdir(mainPath)
 
     def updateCamera(self):
         print(self.cameraStart, pygame.time.get_ticks())
@@ -396,10 +398,11 @@ class Game(object):
                 (0,0,(timeLeft/self.cameraTimer)*1820,50)
                 )
 
-    def updateMenu(self,rHandX,rHandY):
+    def updateMenu(self,rHandX,rHandY,i):
         # Menu processing
+        if rHandX < 1300: self.lock[i] = False
         # Right Panel
-        if rHandX >= 1520:
+        if rHandX >= 1520 and not self.lock[i]:
             if rHandY <= 360:
                 self.mode = self.CLOSET
                 self.closetModel.shapes.extend(
@@ -502,14 +505,6 @@ class Game(object):
             10
             )
 
-        # Menu
-        # pygame.draw.line(
-        #     self.frameSurface,
-        #     (255,255,255),
-        #     (1520,0),(1520,1080),
-        #     20
-        #     )
-
         # Design Front
         if self.mode == self.DESIGNFRONT:
             redColor = self.redGradient[int(self.frontColor[0]/255 * 10)]
@@ -532,12 +527,15 @@ class Game(object):
                 (1520,720,400,360)
                 )
     def blitCameraDone(self):
+        mainPath = os.getcwd()
+        os.chdir("screenshots")
         if self.screenshot == None:
             self.screenshot = pygame.image.load("screenshot.png")
             self.tempScreenshot = pygame.transform.scale(self.screenshot,(672,378))
         else:
             self.screen.blit(self.tempScreenshot, (119,81))
             self.screen.blit(self.cameraDone, (810,0))
+        os.chdir(mainPath)
 
     def blitGUI(self):
         if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
