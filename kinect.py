@@ -56,6 +56,20 @@ class Game(object):
                                 )
         self.initPics()
         self.initGUIVars()
+        self.initDesignVars()
+
+    def initDesignVars(self):
+        self.redGradient = [(255,31,82), (245,29,75), (236,27,68), (226,25,61),
+                            (217,24,54), (207,22,48), (198,20,41), (188,19,34),
+                            (179,17,27), (169,15,20), (160,14,14)]
+        self.greenGradient = [(162,229,0), (147,218,6), (132,208,12),
+                              (118,198,18), (103,188,24), (89,178,30),
+                              (74,167,36), (59,157,42), (45,147,48),
+                              (30,137,54), (16,127,61)]
+        self.blueGradient = [(23,232,253), (21,208,246), (20,185,240),
+                             (18,162,234), (17,139,228), (16,116,222),
+                             (14,92,215), (13,69,209), (11,46,203),
+                             (10,23,197), (9,0,191)]
 
     def initGUIVars(self):
         self.MENU = 1
@@ -428,19 +442,23 @@ class Game(object):
 
         # Design Front
         if self.mode == self.DESIGNFRONT:
+            redColor = self.redGradient[int(self.frontColor[0]/255 * 10)]
+            greenColor = self.greenGradient[int(self.frontColor[1]/255 * 10)]
+            blueColor = self.blueGradient[int(self.frontColor[2]/255 * 10)]
+
             pygame.draw.rect(
                 self.frameSurface,
-                (200,0,0),
+                redColor,
                 (1520,0,400,360)
                 )
             pygame.draw.rect(
                 self.frameSurface,
-                (0,200,0),
+                greenColor,
                 (1520,360,400,360)
                 )
             pygame.draw.rect(
                 self.frameSurface,
-                (0,0,200),
+                blueColor,
                 (1520,720,400,360)
                 )
 
