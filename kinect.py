@@ -80,6 +80,7 @@ class Game(object):
         self.addMode = pygame.image.load("addMode.png")
         self.minusMode = pygame.image.load("minusMode.png")
         self.palette = pygame.image.load("palette.png")
+        self.fullScreen = pygame.image.load("fullscreen.png")
 
     def initScreenVar(self):
         # screen variables
