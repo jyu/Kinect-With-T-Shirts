@@ -98,6 +98,8 @@ class Game(object):
         self.minusMode = pygame.image.load("minusMode.png")
         self.palette = pygame.image.load("palette.png")
         self.fullScreen = pygame.image.load("fullscreen.png")
+        self.screenshot = None
+        self.cameraDone = pygame.image.load("cameradone.png")
 
     def initScreenVar(self):
         # screen variables
@@ -323,6 +325,8 @@ class Game(object):
                 self.closetModel.shapes.pop()
             elif self.mode == self.CAMERA:
                 self.cameraStart = 0
+            elif self.mode == self.CAMERADONE:
+                self.screenshot = None
             self.mode = self.MENU
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
@@ -330,6 +334,20 @@ class Game(object):
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY,i)
         elif self.mode == self.CAMERA: self.updateCamera()
+        elif self.mode == self.CAMERADONE: self.updateCameraDone(rHandX,rHandY,lHandY,i)
+
+    def updateCameraDone(self,rHandX,rHandY,lHandY,i):
+        pygame.draw.rect(
+                self.frameSurface,
+                (200,200,200),
+                ((288-40)-30,(162-40),2*(672+40),2*(378+40))
+                )
+        if rHandX >= 1620:
+            if rHandY <= 360:
+                pass
+
+            elif rHandY > 360 and rHandY < 720: pass
+            elif rHandY < 1080: pass
 
     def updateCamera(self):
         print(self.cameraStart, pygame.time.get_ticks())
@@ -482,6 +500,13 @@ class Game(object):
                 blueColor,
                 (1520,720,400,360)
                 )
+    def blitCameraDone(self):
+        if self.screenshot == None:
+            self.screenshot = pygame.image.load("screenshot.png")
+            self.screenshot = pygame.transform.scale(self.screenshot,(672,378))
+        else:
+            self.screen.blit(self.screenshot, (119,81))
+            self.screen.blit(self.cameraDone, (810,0))
 
     def blitGUI(self):
         if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
@@ -492,6 +517,7 @@ class Game(object):
             self.screen.blit(self.palette, (617,0))
             if self.sign == 1: self.screen.blit(self.addMode, (0,100))
             elif self.sign == -1: self.screen.blit(self.minusMode, (0,100))
+        if self.mode == self.CAMERADONE: self.blitCameraDone()
 
     def updateBodies(self):
         for i in range(self.kinect.max_body_count):
