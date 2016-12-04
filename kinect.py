@@ -82,9 +82,13 @@ class Game(object):
         self.DESIGNSLEEVES = 7
         self.FULLSCREEN = 8
         self.CAMERADONE = 9
+        self.DESIGNFRONTMIX = 10
         self.mode = self.MENU
         self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
         self.frontColor = [50,50,50]
+
+    def initGUILocks(self):
+        # Controls gui to make sure screens arent selected multiple times
         self.nextMode = None
         self.lock = [False, False, False, False, False, False]
         self.sign = 1
@@ -103,6 +107,8 @@ class Game(object):
         self.palette = pygame.image.load("palette.png")
         self.fullScreen = pygame.image.load("fullscreen.png")
         self.cameraDone = pygame.image.load("cameradone.png")
+        self.designColors = pygame.image.load("designcolors.png")
+        self.mix = pygame.image.load("mix.png")
         os.chdir(mainPath)
         self.screenshot = None
         self.tempScreenShot = None
@@ -338,12 +344,13 @@ class Game(object):
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY,i)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
+        elif self.mode == self.CAMERA: self.updateCamera()
+        elif self.mode == self.CAMERADONE: self.updateCameraDone(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNFRONT:
-            self.updateFront(rHandX,rHandY,lHandY,i)
-        elif self.mode == self.CAMERA: self.updateCamera()
-        elif self.mode == self.CAMERADONE:
-            self.updateCameraDone(rHandX,rHandY,lHandY,i)
+            self.updateFront(rHandX,rHandY,lHandY,lHandX,i)
+        elif self.mode == self.DESIGNFRONTMIX:
+            self.updateMixFront(rHandX,rHandY,lHandY,i)
 
     def updateCameraDone(self,rHandX,rHandY,lHandY,i):
         pygame.draw.rect(
@@ -462,6 +469,26 @@ class Game(object):
         if rHandX < 1300: self.designLock[i] = False
 
     def updateFront(self, rHandX, rHandY, lHandY, i):
+        step = 154.4
+        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
+            self.mode = self.DESIGNFRONTMIX
+        elif rHandX >= 1520:
+            if not self.lock[i]:
+                if rHandY <= step: self.frontColor = (237,28,36)
+                elif rHandY <= step*2: self.frontColor = (255,127,39)
+                elif rHandY <= step*3: self.frontColor = (255,242,0)
+                elif rHandY <= step*4: self.frontColor = (34,177,76)
+                elif rHandY <= step*5: self.frontColor = (0,162,232)
+                elif rHandY <= step*6: self.frontColor = (63,72,204)
+                elif rHandY <= step*7: self.frontColor = (163,73,164)
+            self.lock[i] = True
+            for shape in self.model.shapes:
+                shape.colors[1] = tuple(self.frontColor)
+
+        if rHandX <= 1400:
+            self.lock[i] = False
+
+    def updateMixFront(self, rHandX, rHandY, lHandY, i):
         # Flip sign gesture
         if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
             and rHandX < 1520):
@@ -543,12 +570,15 @@ class Game(object):
         if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
         self.screen.blit(self.fullScreen, (0,440))
         if self.mode == self.MENU: self.screen.blit(self.menu, (760,0))
-        if self.mode == self.DESIGN: self.screen.blit(self.design, (760,0))
-        if self.mode == self.DESIGNFRONT:
+        elif self.mode == self.CAMERADONE: self.blitCameraDone()
+        elif self.mode == self.DESIGN: self.screen.blit(self.design, (760,0))
+        elif self.mode == self.DESIGNFRONTMIX:
             self.screen.blit(self.palette, (617,0))
             if self.sign == 1: self.screen.blit(self.addMode, (0,100))
             elif self.sign == -1: self.screen.blit(self.minusMode, (0,100))
-        if self.mode == self.CAMERADONE: self.blitCameraDone()
+        elif self.mode == self.DESIGNFRONT:
+            self.screen.blit(self.mix, (0,100))
+            self.screen.blit(self.designColors, (810,0))
 
     def updateBodies(self):
         for i in range(self.kinect.max_body_count):

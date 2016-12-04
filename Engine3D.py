@@ -51,7 +51,6 @@ class Point(object):
         else:
             return 1
 
-
     def updateDrawCoord(self):
         # Updates draw positions based on changes in position of the point
         self.drawZ = self.z + self.zView
@@ -69,7 +68,6 @@ class Point(object):
             (self.drawX,self.drawY),
             20
         )
-
 
 class Cube(object):
     def __init__(self,x,y,z,length,surface):
