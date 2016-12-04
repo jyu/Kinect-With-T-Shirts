@@ -354,25 +354,37 @@ class Game(object):
                 )
         if rHandX >= 1620:
             if rHandY <= 360:
-                pass
-
-            elif rHandY > 360 and rHandY < 720: pass
-            elif rHandY < 1080: pass
+                for fileName in os.listdir("."):
+                    if fileName.startswith("screenshot"):
+                        self.screenshotCount += 1
+                        name = "picture%d.png" % (self.screenshotCount)
+                        os.rename(fileName, name)
+                self.screenshot = None
+                self.tempScreenshot = None
+                self.mode = self.MENU
+            elif rHandY > 360 and rHandY < 720:
+                self.screenshot = None
+                self.tempScreenshot = None
+                self.mode = self.MENU
+            elif rHandY < 1080:
+                self.screenshot = None
+                self.tempScreenshot = None
+                self.mode = self.CAMERA
 
     def updateCamera(self):
         print(self.cameraStart, pygame.time.get_ticks())
         if self.cameraStart == 0:
             self.cameraStart = pygame.time.get_ticks()
-        if pygame.time.get_ticks() - self.cameraStart >= 5000:
+        if pygame.time.get_ticks() - self.cameraStart >= self.cameraTimer:
             pygame.image.save(self.screen,"screenshot.png")
             self.cameraStart = 0
             self.mode = self.CAMERADONE
-        timeLeft = 5000 - (pygame.time.get_ticks() - self.cameraStart)
+        timeLeft = self.cameraTimer - (pygame.time.get_ticks() - self.cameraStart)
         if timeLeft > 100:
             pygame.draw.rect(
                 self.frameSurface,
                 (0,200,0),
-                (0,0,(timeLeft/5000)*1820,50)
+                (0,0,(timeLeft/self.cameraTimer)*1820,50)
                 )
 
     def updateMenu(self,rHandX,rHandY):
@@ -513,9 +525,9 @@ class Game(object):
     def blitCameraDone(self):
         if self.screenshot == None:
             self.screenshot = pygame.image.load("screenshot.png")
-            self.screenshot = pygame.transform.scale(self.screenshot,(672,378))
+            self.tempScreenshot = pygame.transform.scale(self.screenshot,(672,378))
         else:
-            self.screen.blit(self.screenshot, (119,81))
+            self.screen.blit(self.tempScreenshot, (119,81))
             self.screen.blit(self.cameraDone, (810,0))
 
     def blitGUI(self):
