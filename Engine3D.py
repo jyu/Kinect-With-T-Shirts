@@ -515,8 +515,8 @@ class shirt(object):
                                    -rightAng,
                                   "XY"
                                   )
+                    # Lift torso side of sleeve
                     if index in [1,2,5,6] and rightAng < 0:
-                        print('lifting', rightAng)
                         yLift = -30
                     else: yLift = 0
                     x, y = x - xSide + 50, y - ySide + 30 + yLift

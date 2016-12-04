@@ -72,6 +72,7 @@ class Game(object):
         self.lock = [False, False, False, False, False, False]
         self.sign = 1
         self.flipLock = [False, False, False, False, False, False]
+        self.designLock = [True, True, True, True, True, True]
 
     def initPics(self):
         self.menu = pygame.image.load("menu.png")
@@ -349,25 +350,31 @@ class Game(object):
         #         shirt = self.model.shapes[i]
         #         shirt.update(shirt.initX,shirt.initY,100,150,self.modelAngle,60,60)
 
-    def updateDesign(self, rHandX, rHandY, lHandY):
+    def updateDesign(self, rHandX, rHandY, lHandY, i):
         # Right Panel
-        if rHandX >= 1520:
+        if rHandX >= 1520 and not self.designLock[i]:
+            self.designLock[i] = True
             if rHandY <= 360:
                 self.nextMode = self.DESIGNFRONT
             elif rHandY > 360 and rHandY < 720:
                 self.nextMode = self.DESIGNSIDES
             elif rHandY < 1080:
                 self.nextMode = self.DESIGNSLEEVES
-        if rHandX < 1300 and self.nextMode != None:
             self.mode = self.nextMode
+            self.designLock[i] = True
+
+        if rHandX < 1300 and self.designLock[i] and self.nextMode != None:
+            self.nextMode = None
+        if rHandX < 1300: self.designLock[i] = False
 
     def updateFront(self, rHandX, rHandY, lHandY, i):
         # Flip sign gesture
-        if abs(rHandY-lHandY) >= 800 and self.flipLock[i] == False:
+        if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
+            and rHandX < 1520):
             print('flip')
             self.sign *= -1
             self.flipLock[i] = True
-        if abs(rHandY-lHandY) <= 500 and self.flipLock[i] == True:
+        if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
             self.flipLock[i] = False
         # Right Panel
         if rHandX >= 1520:
@@ -433,6 +440,7 @@ class Game(object):
                 )
 
     def blitGUI(self):
+
         if self.mode == self.MENU: self.screen.blit(self.menu,(760,0))
         if self.mode == self.DESIGN: self.screen.blit(self.design,(760,0))
         if self.mode == self.DESIGNFRONT:
