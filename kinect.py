@@ -353,6 +353,8 @@ class Game(object):
                 ((288-40)-30,(162-40),2*(672+40),2*(378+40))
                 )
         if rHandX >= 1620:
+            mainPath = os.getcwd()
+            os.chdir("screenshots")
             if rHandY <= 360:
                 for fileName in os.listdir("."):
                     if fileName.startswith("screenshot"):
@@ -363,20 +365,27 @@ class Game(object):
                 self.tempScreenshot = None
                 self.mode = self.MENU
             elif rHandY > 360 and rHandY < 720:
+                os.remove("screenshot.png")
                 self.screenshot = None
                 self.tempScreenshot = None
                 self.mode = self.MENU
             elif rHandY < 1080:
+                os.remove("screenshot.png")
                 self.screenshot = None
                 self.tempScreenshot = None
                 self.mode = self.CAMERA
+
+            os.chdir(mainPath)
 
     def updateCamera(self):
         print(self.cameraStart, pygame.time.get_ticks())
         if self.cameraStart == 0:
             self.cameraStart = pygame.time.get_ticks()
         if pygame.time.get_ticks() - self.cameraStart >= self.cameraTimer:
+            mainPath = os.getcwd()
+            os.chdir("screenshots")
             pygame.image.save(self.screen,"screenshot.png")
+            os.chdir(mainPath)
             self.cameraStart = 0
             self.mode = self.CAMERADONE
         timeLeft = self.cameraTimer - (pygame.time.get_ticks() - self.cameraStart)
