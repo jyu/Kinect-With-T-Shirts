@@ -80,6 +80,7 @@ class Game(object):
         self.DESIGNSIDES = 6
         self.DESIGNSLEEVES = 7
         self.FULLSCREEN = 8
+        self.CAMERADONE = 9
         self.mode = self.MENU
         self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
         self.frontColor = [50,50,50]
@@ -88,6 +89,7 @@ class Game(object):
         self.sign = 1
         self.flipLock = [False, False, False, False, False, False]
         self.designLock = [True, True, True, True, True, True]
+        self.cameraStart = 0
 
     def initPics(self):
         self.menu = pygame.image.load("menu.png")
@@ -319,12 +321,31 @@ class Game(object):
                 self.closetModel.shapes.pop()
                 self.closetModel.shapes.pop()
                 self.closetModel.shapes.pop()
+            elif self.mode == self.CAMERA:
+                self.cameraStart = 0
             self.mode = self.MENU
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.CAMERA: self.updateCamera()
+
+    def updateCamera(self):
+        print(self.cameraStart, pygame.time.get_ticks())
+        if self.cameraStart == 0:
+            self.cameraStart = pygame.time.get_ticks()
+        if pygame.time.get_ticks() - self.cameraStart >= 5000:
+            pygame.image.save(self.screen,"screenshot.png")
+            self.cameraStart = 0
+            self.mode = self.CAMERADONE
+        timeLeft = 5000 - (pygame.time.get_ticks() - self.cameraStart)
+        if timeLeft > 100:
+            pygame.draw.rect(
+                self.frameSurface,
+                (0,200,0),
+                (0,0,(timeLeft/5000)*1820,50)
+                )
 
     def updateMenu(self,rHandX,rHandY):
         # Menu processing
@@ -417,7 +438,7 @@ class Game(object):
             shape.colors[1] = tuple(self.frontColor)
 
     def drawGUI(self):
-        if self.mode == self.FULLSCREEN: return
+        if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
         # Exit
         pygame.draw.rect(
             self.frameSurface,
@@ -463,7 +484,8 @@ class Game(object):
                 )
 
     def blitGUI(self):
-        if self.mode != self.FULLSCREEN: self.screen.blit(self.fullScreen, (0,440))
+        if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
+        self.screen.blit(self.fullScreen, (0,440))
         if self.mode == self.MENU: self.screen.blit(self.menu, (760,0))
         if self.mode == self.DESIGN: self.screen.blit(self.design, (760,0))
         if self.mode == self.DESIGNFRONT:
