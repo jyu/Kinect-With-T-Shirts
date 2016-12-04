@@ -106,7 +106,6 @@ class Game(object):
         os.chdir(mainPath)
         self.screenshot = None
         self.tempScreenShot = None
-        self.screenshotCount = 0
 
     def initScreenVar(self):
         # screen variables
@@ -357,10 +356,13 @@ class Game(object):
                 mainPath = os.getcwd()
                 os.chdir("screenshots")
                 if rHandY <= 360:
+                    screenshotCount = 0
                     for fileName in os.listdir("."):
+                        if fileName.startswith("picture"):
+                            if int(fileName[7:-4]) >= screenshotCount:
+                                screenshotCount = int(fileName[7:-4]) + 1
                         if fileName.startswith("screenshot"):
-                            self.screenshotCount += 1
-                            name = "picture%d.png" % (self.screenshotCount)
+                            name = "picture%d.png" % (screenshotCount)
                             os.rename(fileName, name)
                     self.screenshot = None
                     self.tempScreenshot = None
