@@ -477,6 +477,7 @@ class shirt(object):
             for i in range(len(XOperations)):
                 xOp, yOp = XOperations[i], YOperations[i]
                 x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
+                if leftAng > 0.8 and leftAng < 1.5: leftAng -= -1*(leftAng-1.5)*.07
                 # Translate to shoulder to rotate and translate back
                 if leftAng >= 0: preX, preY = -30, 0
                 else: preX,preY = 0, -20
@@ -486,10 +487,7 @@ class shirt(object):
                               leftAng,
                               "XY"
                               )
-                if leftAng > 0: yLift = leftAng * (20)
-                else: yLift = 0
                 x, y = x + xSide - 50, y - ySide
-                # print(leftAng)
                 x, y, z = self.rotate(
                               x, y, z,
                               angleXZ,
