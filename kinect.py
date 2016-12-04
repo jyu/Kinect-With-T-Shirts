@@ -6,6 +6,7 @@ import _ctypes
 import pygame
 import sys
 import math
+import os
 
 from Engine3D import *
 
@@ -90,16 +91,22 @@ class Game(object):
         self.flipLock = [False, False, False, False, False, False]
         self.designLock = [True, True, True, True, True, True]
         self.cameraStart = 0
+        self.cameraTimer = 3000
 
     def initPics(self):
+        mainPath = os.getcwd()
+        os.chdir("sourcePictures")
         self.menu = pygame.image.load("menu.png")
         self.design = pygame.image.load("design.png")
         self.addMode = pygame.image.load("addMode.png")
         self.minusMode = pygame.image.load("minusMode.png")
         self.palette = pygame.image.load("palette.png")
         self.fullScreen = pygame.image.load("fullscreen.png")
-        self.screenshot = None
         self.cameraDone = pygame.image.load("cameradone.png")
+        os.chdir(mainPath)
+        self.screenshot = None
+        self.tempScreenShot = None
+        self.screenshotCount = 0
 
     def initScreenVar(self):
         # screen variables
@@ -327,14 +334,17 @@ class Game(object):
                 self.cameraStart = 0
             elif self.mode == self.CAMERADONE:
                 self.screenshot = None
+                self.tempScreenshot = None
             self.mode = self.MENU
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
-        elif self.mode == self.DESIGNFRONT: self.updateFront(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.DESIGNFRONT:
+            self.updateFront(rHandX,rHandY,lHandY,i)
         elif self.mode == self.CAMERA: self.updateCamera()
-        elif self.mode == self.CAMERADONE: self.updateCameraDone(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.CAMERADONE:
+            self.updateCameraDone(rHandX,rHandY,lHandY,i)
 
     def updateCameraDone(self,rHandX,rHandY,lHandY,i):
         pygame.draw.rect(
