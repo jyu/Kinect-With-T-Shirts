@@ -65,6 +65,7 @@ class Game(object):
         self.DESIGNFRONT = 5
         self.DESIGNSIDES = 6
         self.DESIGNSLEEVES = 7
+        self.FULLSCREEN = 8
         self.mode = self.MENU
         self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
         self.frontColor = [50,50,50]
@@ -295,6 +296,9 @@ class Game(object):
         # Exit Button
         if lHandX < 200 and lHandY < 200:
             self.done = True
+        # Fullscreen Button
+        elif lHandX < 400 and lHandY > 880:
+            self.mode = self.FULLSCREEN
         # Back to menu, gesture
         elif abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and rHandY > 30:
             if self.mode == self.CLOSET:
@@ -372,7 +376,6 @@ class Game(object):
         # Flip sign gesture
         if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
             and rHandX < 1520):
-            print('flip')
             self.sign *= -1
             self.flipLock[i] = True
         if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
@@ -400,6 +403,7 @@ class Game(object):
             shape.colors[1] = tuple(self.frontColor)
 
     def drawGUI(self):
+        if self.mode == self.FULLSCREEN: return
         # Exit
         pygame.draw.rect(
             self.frameSurface,
@@ -441,13 +445,13 @@ class Game(object):
                 )
 
     def blitGUI(self):
-
-        if self.mode == self.MENU: self.screen.blit(self.menu,(760,0))
-        if self.mode == self.DESIGN: self.screen.blit(self.design,(760,0))
+        if self.mode != self.FULLSCREEN: self.screen.blit(self.fullScreen, (0,440))
+        if self.mode == self.MENU: self.screen.blit(self.menu, (760,0))
+        if self.mode == self.DESIGN: self.screen.blit(self.design, (760,0))
         if self.mode == self.DESIGNFRONT:
             self.screen.blit(self.palette, (617,0))
-            if self.sign == 1: self.screen.blit(self.addMode,(0,100))
-            elif self.sign == -1: self.screen.blit(self.minusMode,(0,100))
+            if self.sign == 1: self.screen.blit(self.addMode, (0,100))
+            elif self.sign == -1: self.screen.blit(self.minusMode, (0,100))
 
     def updateBodies(self):
         for i in range(self.kinect.max_body_count):
