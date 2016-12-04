@@ -83,9 +83,15 @@ class Game(object):
         self.FULLSCREEN = 8
         self.CAMERADONE = 9
         self.DESIGNFRONTMIX = 10
+        self.DESIGNSIDESMIX = 11
+        self.DESIGNSLEEVESMIX = 12
         self.mode = self.MENU
-        self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
-        self.frontColor = [50,50,50]
+        self.nextColors = [(43, 156, 54),(200,  0,0),(61, 187, 198)]
+        self.frontColor = [200, 0, 0]
+        self.sidesColor = [43, 156, 54]
+        self.sleevesColor = [61, 187, 198]
+        self.initGUILocks()
+
 
     def initGUILocks(self):
         # Controls gui to make sure screens arent selected multiple times
@@ -328,6 +334,10 @@ class Game(object):
             self.done = True
         # Fullscreen Button
         elif lHandX < 400 and lHandY > 880:
+            if self.mode == self.CLOSET:
+                self.closetModel.shapes.pop()
+                self.closetModel.shapes.pop()
+                self.closetModel.shapes.pop()
             self.mode = self.FULLSCREEN
         # Back to menu, gesture
         elif abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and rHandY > 30:
@@ -351,6 +361,14 @@ class Game(object):
             self.updateFront(rHandX,rHandY,lHandY,lHandX,i)
         elif self.mode == self.DESIGNFRONTMIX:
             self.updateMixFront(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.DESIGNSIDES:
+            self.updateSides(rHandX,rHandY,lHandY,lHandX,i)
+        elif self.mode == self.DESIGNSIDESMIX:
+            self.updateMixSides(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.DESIGNSLEEVES:
+            self.updateSleeves(rHandX,rHandY,lHandY,lHandX,i)
+        elif self.mode == self.DESIGNSLEEVESMIX:
+            self.updateMixSleeves(rHandX,rHandY,lHandY,i)
 
     def updateCameraDone(self,rHandX,rHandY,lHandY,i):
         pygame.draw.rect(
@@ -358,35 +376,35 @@ class Game(object):
                 (200,200,200),
                 ((288-40)-30,(162-40),2*(672+40),2*(378+40))
                 )
+        if rHandX < 1300: self.lock[i] = False
         if rHandX >= 1620 and not self.lock[i]:
-            if not self.lock[i]:
-                mainPath = os.getcwd()
-                os.chdir("screenshots")
-                if rHandY <= 360:
-                    screenshotCount = 0
-                    for fileName in os.listdir("."):
-                        if fileName.startswith("picture"):
-                            if int(fileName[7:-4]) >= screenshotCount:
-                                screenshotCount = int(fileName[7:-4]) + 1
-                        if fileName.startswith("screenshot"):
-                            name = "picture%d.png" % (screenshotCount)
-                            os.rename(fileName, name)
-                    self.screenshot = None
-                    self.tempScreenshot = None
-                    self.nextMode = self.MENU
-                elif rHandY > 360 and rHandY < 720:
-                    os.remove("screenshot.png")
-                    self.screenshot = None
-                    self.tempScreenshot = None
-                    self.nextMode = self.MENU
-                elif rHandY < 1080:
-                    os.remove("screenshot.png")
-                    self.screenshot = None
-                    self.tempScreenshot = None
-                    self.nextMode = self.CAMERA
-                self.mode = self.nextMode
-                self.lock[i] = True
-                os.chdir(mainPath)
+            mainPath = os.getcwd()
+            os.chdir("screenshots")
+            if rHandY <= 360:
+                screenshotCount = 0
+                for fileName in os.listdir("."):
+                    if fileName.startswith("picture"):
+                        if int(fileName[7:-4]) >= screenshotCount:
+                            screenshotCount = int(fileName[7:-4]) + 1
+                    if fileName.startswith("screenshot"):
+                        name = "picture%d.png" % (screenshotCount)
+                        os.rename(fileName, name)
+                self.screenshot = None
+                self.tempScreenshot = None
+                self.nextMode = self.MENU
+            elif rHandY > 360 and rHandY < 720:
+                os.remove("screenshot.png")
+                self.screenshot = None
+                self.tempScreenshot = None
+                self.nextMode = self.MENU
+            elif rHandY < 1080:
+                os.remove("screenshot.png")
+                self.screenshot = None
+                self.tempScreenshot = None
+                self.nextMode = self.CAMERA
+            self.mode = self.nextMode
+            self.lock[i] = True
+            os.chdir(mainPath)
 
     def updateCamera(self):
         print(self.cameraStart, pygame.time.get_ticks())
@@ -412,6 +430,7 @@ class Game(object):
         if rHandX < 1300: self.lock[i] = False
         # Right Panel
         if rHandX >= 1520 and not self.lock[i]:
+            self.lock[i] = True
             if rHandY <= 360:
                 self.mode = self.CLOSET
                 self.closetModel.shapes.extend(
@@ -453,8 +472,8 @@ class Game(object):
 
     def updateDesign(self, rHandX, rHandY, lHandY, i):
         # Right Panel
-        if rHandX >= 1520 and not self.designLock[i]:
-            self.designLock[i] = True
+        if rHandX >= 1520 and not self.lock[i]:
+            self.lock[i] = True
             if rHandY <= 360:
                 self.nextMode = self.DESIGNFRONT
             elif rHandY > 360 and rHandY < 720:
@@ -462,31 +481,136 @@ class Game(object):
             elif rHandY < 1080:
                 self.nextMode = self.DESIGNSLEEVES
             self.mode = self.nextMode
-            self.designLock[i] = True
+            self.lock[i] = True
 
-        if rHandX < 1300 and self.designLock[i] and self.nextMode != None:
+        if rHandX < 1300 and self.lock[i] and self.nextMode != None:
             self.nextMode = None
-        if rHandX < 1300: self.designLock[i] = False
+        if rHandX < 1300: self.lock[i] = False
 
-    def updateFront(self, rHandX, rHandY, lHandY, i):
+        for shape in self.model.shapes:
+                shape.colors[0] = tuple(self.sidesColor)
+                shape.colors[1] = tuple(self.frontColor)
+                shape.colors[2] = tuple(self.sleevesColor)
+
+    def updateSleeves(self, rHandX, rHandY, lHandY, lHandX, i):
+        step = 154.4
+        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
+            self.mode = self.DESIGNSLEEVESMIX
+        elif rHandX >= 1520:
+            if not self.lock[i]:
+                if rHandY <= step: self.sleevesColor = [237,28,36]
+                elif rHandY <= step*2: self.sleevesColor = [255,127,39]
+                elif rHandY <= step*3: self.sleevesColor = [255,242,0]
+                elif rHandY <= step*4: self.sleevesColor = [34,177,76]
+                elif rHandY <= step*5: self.sleevesColor = [0,162,232]
+                elif rHandY <= step*6: self.sleevesColor = [63,72,204]
+                elif rHandY <= step*7: self.sleevesColor = [163,73,164]
+            self.lock[i] = True
+            for shape in self.model.shapes:
+                shape.colors[2] = tuple(self.sleevesColor)
+
+        if rHandX <= 1400:
+            self.lock[i] = False
+
+    def updateSides(self, rHandX, rHandY, lHandY, lHandX, i):
+        step = 154.4
+        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
+            self.mode = self.DESIGNSIDESMIX
+        elif rHandX >= 1520:
+            if not self.lock[i]:
+                if rHandY <= step: self.sidesColor = [237,28,36]
+                elif rHandY <= step*2: self.sidesColor = [255,127,39]
+                elif rHandY <= step*3: self.sidesColor = [255,242,0]
+                elif rHandY <= step*4: self.sidesColor = [34,177,76]
+                elif rHandY <= step*5: self.sidesColor = [0,162,232]
+                elif rHandY <= step*6: self.sidesColor = [63,72,204]
+                elif rHandY <= step*7: self.sidesColor = [163,73,164]
+            self.lock[i] = True
+            for shape in self.model.shapes:
+                shape.colors[0] = tuple(self.sidesColor)
+
+        if rHandX <= 1400:
+            self.lock[i] = False
+
+    def updateFront(self, rHandX, rHandY, lHandY, lHandX, i):
         step = 154.4
         if lHandX < 200 and lHandY <= 366 and lHandY > 200:
             self.mode = self.DESIGNFRONTMIX
         elif rHandX >= 1520:
             if not self.lock[i]:
-                if rHandY <= step: self.frontColor = (237,28,36)
-                elif rHandY <= step*2: self.frontColor = (255,127,39)
-                elif rHandY <= step*3: self.frontColor = (255,242,0)
-                elif rHandY <= step*4: self.frontColor = (34,177,76)
-                elif rHandY <= step*5: self.frontColor = (0,162,232)
-                elif rHandY <= step*6: self.frontColor = (63,72,204)
-                elif rHandY <= step*7: self.frontColor = (163,73,164)
+                if rHandY <= step: self.frontColor = [237,28,36]
+                elif rHandY <= step*2: self.frontColor = [255,127,39]
+                elif rHandY <= step*3: self.frontColor = [255,242,0]
+                elif rHandY <= step*4: self.frontColor = [34,177,76]
+                elif rHandY <= step*5: self.frontColor = [0,162,232]
+                elif rHandY <= step*6: self.frontColor = [63,72,204]
+                elif rHandY <= step*7: self.frontColor = [163,73,164]
             self.lock[i] = True
             for shape in self.model.shapes:
                 shape.colors[1] = tuple(self.frontColor)
 
         if rHandX <= 1400:
             self.lock[i] = False
+
+    def updateMixSleeves(self, rHandX, rHandY, lHandY, i):
+        # Flip sign gesture
+        if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
+            and rHandX < 1520):
+            self.sign *= -1
+            self.flipLock[i] = True
+        if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
+            self.flipLock[i] = False
+        # Right Panel
+        if rHandX >= 1520:
+            if not self.lock[i]:
+                if rHandY <= 360:
+                    self.sleevesColor[0] += 20 * self.sign
+                elif rHandY > 360 and rHandY < 720:
+                    self.sleevesColor[1] += 20 * self.sign
+                elif rHandY < 1080:
+                    self.sleevesColor[2] += 20 * self.sign
+            self.lock[i] = True
+        if rHandX <= 1400:
+            self.lock[i] = False
+        self.sleevesColor[0] = min(255, self.sleevesColor[0])
+        self.sleevesColor[1] = min(255, self.sleevesColor[1])
+        self.sleevesColor[2] = min(255, self.sleevesColor[2])
+        self.sleevesColor[0] = max(0, self.sleevesColor[0])
+        self.sleevesColor[1] = max(0, self.sleevesColor[1])
+        self.sleevesColor[2] = max(0, self.sleevesColor[2])
+
+        for shape in self.model.shapes:
+            shape.colors[2] = tuple(self.sleevesColor)
+
+    def updateMixSides(self, rHandX, rHandY, lHandY, i):
+        # Flip sign gesture
+        if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
+            and rHandX < 1520):
+            self.sign *= -1
+            self.flipLock[i] = True
+        if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
+            self.flipLock[i] = False
+        # Right Panel
+        if rHandX >= 1520:
+            if not self.lock[i]:
+                if rHandY <= 360:
+                    self.sidesColor[0] += 20 * self.sign
+                elif rHandY > 360 and rHandY < 720:
+                    self.sidesColor[1] += 20 * self.sign
+                elif rHandY < 1080:
+                    self.sidesColor[2] += 20 * self.sign
+            self.lock[i] = True
+        if rHandX <= 1400:
+            self.lock[i] = False
+        self.sidesColor[0] = min(255, self.sidesColor[0])
+        self.sidesColor[1] = min(255, self.sidesColor[1])
+        self.sidesColor[2] = min(255, self.sidesColor[2])
+        self.sidesColor[0] = max(0, self.sidesColor[0])
+        self.sidesColor[1] = max(0, self.sidesColor[1])
+        self.sidesColor[2] = max(0, self.sidesColor[2])
+
+        for shape in self.model.shapes:
+            shape.colors[0] = tuple(self.sidesColor)
 
     def updateMixFront(self, rHandX, rHandY, lHandY, i):
         # Flip sign gesture
@@ -535,10 +659,19 @@ class Game(object):
             )
 
         # Design Front
-        if self.mode == self.DESIGNFRONT:
-            redColor = self.redGradient[int(self.frontColor[0]/255 * 10)]
-            greenColor = self.greenGradient[int(self.frontColor[1]/255 * 10)]
-            blueColor = self.blueGradient[int(self.frontColor[2]/255 * 10)]
+        if self.mode in [self.DESIGNFRONTMIX,self.DESIGNSIDESMIX,self.DESIGNSLEEVESMIX]:
+            if self.mode == self.DESIGNFRONTMIX:
+                redColor = self.redGradient[int(self.frontColor[0]/255 * 10)]
+                greenColor = self.greenGradient[int(self.frontColor[1]/255 * 10)]
+                blueColor = self.blueGradient[int(self.frontColor[2]/255 * 10)]
+            if self.mode == self.DESIGNSIDESMIX:
+                redColor = self.redGradient[int(self.sidesColor[0]/255 * 10)]
+                greenColor = self.greenGradient[int(self.sidesColor[1]/255 * 10)]
+                blueColor = self.blueGradient[int(self.sidesColor[2]/255 * 10)]
+            if self.mode == self.DESIGNSLEEVESMIX:
+                redColor = self.redGradient[int(self.sleevesColor[0]/255 * 10)]
+                greenColor = self.greenGradient[int(self.sleevesColor[1]/255 * 10)]
+                blueColor = self.blueGradient[int(self.sleevesColor[2]/255 * 10)]
 
             pygame.draw.rect(
                 self.frameSurface,
@@ -555,6 +688,7 @@ class Game(object):
                 blueColor,
                 (1520,720,400,360)
                 )
+
     def blitCameraDone(self):
         mainPath = os.getcwd()
         os.chdir("screenshots")
@@ -572,11 +706,11 @@ class Game(object):
         if self.mode == self.MENU: self.screen.blit(self.menu, (760,0))
         elif self.mode == self.CAMERADONE: self.blitCameraDone()
         elif self.mode == self.DESIGN: self.screen.blit(self.design, (760,0))
-        elif self.mode == self.DESIGNFRONTMIX:
+        elif self.mode in [self.DESIGNFRONTMIX,self.DESIGNSIDESMIX,self.DESIGNSLEEVESMIX]:
             self.screen.blit(self.palette, (617,0))
             if self.sign == 1: self.screen.blit(self.addMode, (0,100))
             elif self.sign == -1: self.screen.blit(self.minusMode, (0,100))
-        elif self.mode == self.DESIGNFRONT:
+        elif self.mode in [self.DESIGNFRONT,self.DESIGNSIDES,self.DESIGNSLEEVES]:
             self.screen.blit(self.mix, (0,100))
             self.screen.blit(self.designColors, (810,0))
 
