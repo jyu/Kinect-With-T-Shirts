@@ -2,6 +2,8 @@ import pygame
 import numpy as np
 import math
 import bisect
+import cv2
+import os
 
 # 3D engine
 
@@ -10,6 +12,8 @@ import bisect
 # Additional info about 3D engines from:
 # https://www.youtube.com/watch?v=g4E9iq0BixA
 # Customized 3D engine for my project
+# Leaned homography from tutorial:
+# http://www.learnopencv.com/homography-examples-using-opencv-python-c/
 
 class Point(object):
 
@@ -149,7 +153,6 @@ class Cube(object):
             pygame.draw.polygon(
             self.surface,
             color,
-            pointList
             )
 
     def sortFacesByZ(self):
@@ -283,6 +286,14 @@ class shirt(object):
         self.initEdges()
         self.initFaces()
         self.colors = colors
+        self.initImages()
+
+    def initImages(self):
+        mainPath = os.getcwd()
+        os.chdir("sourcePictures")
+        self.front = cv2.imread("ironManFront.png")
+        self.frontPts = np.array([[0,0],[152,0],[152,255],[0,255]])
+        os.chdir(mainPath)
 
     def initPoints(self,xSide,ySide,centerX,centerY,centerZ):
         # Points of the cube
@@ -661,6 +672,15 @@ class shirt(object):
         color,
         pointList
         )
+
+    def getFrontFace(self):
+        pointList = []
+        face = self.faces[0]
+        for pointIndex in face:
+                point = self.points[pointIndex]
+                pointList.append((point.drawX, point.drawY))
+        return pointList
+
 
     def sortFacesByZ(self):
         # Sort the faces by their average Z value

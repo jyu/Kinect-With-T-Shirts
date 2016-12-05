@@ -7,6 +7,7 @@ import pygame
 import sys
 import math
 import os
+import cv2
 
 from Engine3D import *
 
@@ -115,6 +116,8 @@ class Game(object):
         self.cameraDone = pygame.image.load("cameradone.png")
         self.designColors = pygame.image.load("designcolors.png")
         self.mix = pygame.image.load("mix.png")
+        self.im_src = cv2.imread("ironManFront.png")
+        self.pts_src = np.array([[0,0],[152,0],[152,255],[0,255]])
         os.chdir(mainPath)
         self.screenshot = None
         self.tempScreenShot = None
@@ -407,7 +410,6 @@ class Game(object):
             os.chdir(mainPath)
 
     def updateCamera(self):
-        print(self.cameraStart, pygame.time.get_ticks())
         if self.cameraStart == 0:
             self.cameraStart = pygame.time.get_ticks()
         if pygame.time.get_ticks() - self.cameraStart >= self.cameraTimer:
@@ -790,10 +792,52 @@ class Game(object):
             self.frameSurface,
             (self.screen.get_width(), target_height)
         )
+        # if surface_to_draw != None:
+        #     surface_to_draw = self.addCostume(surface_to_draw)
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         self.blitGUI()
         pygame.display.update()
+
+    def addCostume(self, image):
+        im_dst = self.pygame_to_cvimage(image)
+        cv2.imwrite(os.getcwd()+"/gg.png", im_dst)
+        if len(self.model.shapes) > 0:
+            for shirt in self.model.shapes:
+                pointList = shirt.getFrontFace()
+                pointList = np.array([list(pointList[0]),
+                                     list(pointList[1]),
+                                     list(pointList[2]),
+                                     list(pointList[3])
+                                     ])
+                for i in range(len(pointList)):
+                    point = pointList[i]
+                    pointList[i] = [point[0]/2, point[1]/2]
+                pts_dst = pointList
+                print(pts_dst)
+                h, status = cv2.findHomography(self.pts_src, pts_dst)
+                im_dst = cv2.warpPerspective(self.im_src, h, (im_dst.shape[-1],im_dst.shape[1]))
+        image = self.cvimage_to_pygame(im_dst)
+        return image
+
+    def pygame_to_cvimage(self, surface):
+        """Convert a pygame surface into a cv image"""
+        # image = np.empty([960, 540, 3], dtype=type(0))
+        # for i in range(960):
+        #     for j in range(540):
+        #         image[i, j] = pygame.surfarray.pixels2d(surface)[i,j]
+        #cv2.imshow("a",image)
+        image = np.array(pygame.surfarray.pixels2d(surface),dtype=type(0))
+        #image = np.array(surface.get_buffer(),dtype=type(0))
+
+        return image
+
+    def cvimage_to_pygame(self,image):
+        # print(image.tostring())
+        """Convert cvimage into a pygame image"""
+        return pygame.surfarray.make_surface(np.array(image))
+        #return pygame.image.frombuffer(image.tostring(), (960, 540),
+        #                           "RGB")
 
     def run(self):
         while self.runLoop():
