@@ -15,6 +15,10 @@ from Engine3D import *
 
 # Guided by Kinect Workshop and FlapPyKinect
 # https://onedrive.live.com/?authkey=%21AMWDgqPgtkPzsAM&id=ED75CBDC5E4AB0FE%211096749&cid=ED75CBDC5E4AB0FE
+# Learned homography from tutorial:
+# http://www.learnopencv.com/homography-examples-using-opencv-python-c/
+# Learned opencv masking from:
+# http://docs.opencv.org/trunk/d0/d86/tutorial_py_image_arithmetics.html
 
 class Game(object):
     def __init__(self):
@@ -116,8 +120,8 @@ class Game(object):
         self.cameraDone = pygame.image.load("cameradone.png")
         self.designColors = pygame.image.load("designcolors.png")
         self.mix = pygame.image.load("mix.png")
-        self.im_src = cv2.imread("ironManFront.png")
-        self.pts_src = np.array([[0,0],[152,0],[152,255],[0,255]])
+        self.frontImage = cv2.imread("ironManFront.png")
+        self.frontImagePoints = np.array([[0,0],[152,0],[152,255],[0,255]])
         os.chdir(mainPath)
         self.screenshot = None
         self.tempScreenShot = None
@@ -644,9 +648,8 @@ class Game(object):
         for shape in self.model.shapes:
             shape.colors[1] = tuple(self.frontColor)
 
-    def drawGUI(self):
-        if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
-        # Exit
+    def drawExit(self):
+        # Exit Logo
         pygame.draw.rect(
             self.frameSurface,
             (250,0,0),
@@ -660,6 +663,9 @@ class Game(object):
             10
             )
 
+    def drawGUI(self):
+        if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
+        self.drawExit()
         # Design Front
         if self.mode in [self.DESIGNFRONTMIX,self.DESIGNSIDESMIX,self.DESIGNSLEEVESMIX]:
             if self.mode == self.DESIGNFRONTMIX:
@@ -692,6 +698,7 @@ class Game(object):
                 )
 
     def blitCameraDone(self):
+        # GUI for cameraDone mode
         mainPath = os.getcwd()
         os.chdir("screenshots")
         if self.screenshot == None:
@@ -703,6 +710,7 @@ class Game(object):
         os.chdir(mainPath)
 
     def blitGUI(self):
+        # Blits images to the screen for different GUI modes
         if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
         self.screen.blit(self.fullScreen, (0,440))
         if self.mode == self.MENU: self.screen.blit(self.menu, (760,0))
@@ -717,19 +725,21 @@ class Game(object):
             self.screen.blit(self.designColors, (810,0))
 
     def updateBodies(self):
+        # Goes through each body detected by kinect
         for i in range(self.kinect.max_body_count):
             body = self.bodies.bodies[i]
-
             if i in self.trackedBodies: self.trackedBodies[i][1] = False
             if body.is_tracked:
-                if i in self.trackedBodies:
-                    self.trackedBodies[i][1] = True
+                # Checks if tracked bodies are seen
+                if i in self.trackedBodies: self.trackedBodies[i][1] = True
                 else:
+                    # Adds a new body to model
                     prevLen = len(self.trackedBodies)
                     self.trackedBodies[i] = [prevLen, True]
                     self.model.shapes.append(
                         shirt(0, 0, 0, self.frameSurface,
                         [(43, 156, 54),(200,0,0),(61, 187, 198)]))
+                # Updates each shirt iwth joint information
                 joints = body.joints
                 self.updateArms(joints, self.trackedBodies[i][0])
                 self.updateHands(joints, self.trackedBodies[i][0])
@@ -737,7 +747,9 @@ class Game(object):
         self.removeUntrackedBodies()
 
     def removeUntrackedBodies(self):
+        # Removes all bodies that are not being tracked
         rmData = [] # Stores (index, trackedBody)
+        # Finds indices
         for checkBody in self.trackedBodies:
             if not self.trackedBodies[checkBody][1]:
                 rmIndex = self.trackedBodies[checkBody][0]
@@ -746,7 +758,7 @@ class Game(object):
                     otherIndex = self.trackedBodies[otherBody][0]
                     if otherIndex > rmIndex:
                         self.trackedBodies[otherBody][0] -= 1
-
+        # Removes the shapes
         for rm in rmData:
             shape = self.model.shapes[rm[0]]
             self.model.shapes.remove(shape)
@@ -754,35 +766,16 @@ class Game(object):
             self.trackedBodies.pop(checkBody)
 
     def drawAll(self):
+        # Calls all draw functions on the surface
         self.model.draw()
         self.closetModel.draw()
         self.updateAllGUI()
         self.drawGUI()
 
-    def runLoop(self):
-        # Pygame events
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: return False
-        # Reads and processes body frame from kinect
-        if self.kinect.has_new_body_frame():
-            self.bodies = self.kinect.get_last_body_frame()
-            self.updateBodies()
-        # KeyPresses
-        key = pygame.key.get_pressed()
-        if sum(key) > 0: self.model.cam.keyPressed(key, self.model)
-        # reads color images from kinect
-        if self.kinect.has_new_color_frame():
-            frame = self.kinect.get_last_color_frame()
-            self.drawColorFrame(frame, self.frameSurface)
-            frame = None
-        self.drawScreen()
-        if self.done: return False
-        self.clock.tick(60)
-        return True
 
     def drawScreen(self):
         self.drawAll()
-        # changes ratio of image to output to window
+        # Changes ratio of image to output to window
         h_to_w = float(
             self.frameSurface.get_height() /
             self.frameSurface.get_width()
@@ -792,52 +785,113 @@ class Game(object):
             self.frameSurface,
             (self.screen.get_width(), target_height)
         )
-        # if surface_to_draw != None:
-        #     surface_to_draw = self.addCostume(surface_to_draw)
+        # Does homography on shirt
+        if surface_to_draw != None:
+            surface_to_draw = self.addCostume(surface_to_draw)
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
+        # Blits GUI images onto shirt
         self.blitGUI()
         pygame.display.update()
 
+
     def addCostume(self, image):
-        im_dst = self.pygame_to_cvimage(image)
-        cv2.imwrite(os.getcwd()+"/gg.png", im_dst)
+        # Guided by homography and opencv tutorials
+        # Get pygame screen and convert to BGR for opencv
+        source = cv2.cvtColor(self.pygame_to_cvimage(image), cv2.COLOR_RGB2BGR)
+        # Search through all bodies
         if len(self.model.shapes) > 0:
             for shirt in self.model.shapes:
+                # Get pointlist of front of the shirt
                 pointList = shirt.getFrontFace()
                 pointList = np.array([list(pointList[0]),
                                      list(pointList[1]),
                                      list(pointList[2]),
                                      list(pointList[3])
                                      ])
+                # Convert coord systems
                 for i in range(len(pointList)):
                     point = pointList[i]
                     pointList[i] = [point[0]/2, point[1]/2]
-                pts_dst = pointList
-                print(pts_dst)
-                h, status = cv2.findHomography(self.pts_src, pts_dst)
-                im_dst = cv2.warpPerspective(self.im_src, h, (im_dst.shape[-1],im_dst.shape[1]))
-        image = self.cvimage_to_pygame(im_dst)
+                source = self.warp(pointList, source)
+
+        else:
+            pass
+            # cv2.imwrite(os.getcwd()+"/gg.png", source)
+            # pointList = np.array([[50,70],[176,100],[176,250],[50,180]])
+            # source = self.warp(pointList, source)
+            # h, status = cv2.findHomography(self.frontImagePoints, pointList)
+            # warped = cv2.warpPerspective(self.frontImage, h, (source.shape[1],source.shape[0]))
+            # # ROI
+            # rows,cols,channels = warped.shape
+            # roi = source[0:rows, 0:cols]
+            # # Now create a mask of logo and create its inverse mask also
+            # img2gray = cv2.cvtColor(warped,cv2.COLOR_BGR2GRAY)
+            # ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
+            # mask_inv = cv2.bitwise_not(mask)
+
+            # # Now black-out the area of logo in ROI
+            # sourceBG = cv2.bitwise_and(roi,roi,mask = mask_inv)
+
+            # # Take only region of logo from logo image.
+            # shirtFG = cv2.bitwise_and(warped,warped,mask = mask)
+
+            # # Put logo in ROI and modify the main image
+            # dst = cv2.add(sourceBG,shirtFG, dtype=0)
+            # source[0:rows, 0:cols] = dst
+
+        result = np.transpose(source,(1,0,2))
+        image = self.cvimage_to_pygame(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
         return image
+
+    def warp(self, pointList, source):
+        # Get warped shirt with homography
+        h, status = cv2.findHomography(self.frontImagePoints, pointList)
+        warped = cv2.warpPerspective(self.frontImage,
+                                    h,
+                                    (source.shape[1],source.shape[0]))
+        # Get region of interest to put shirt onto
+        rows,cols,channels = warped.shape
+        roi = source[0:rows, 0:cols]
+        # Create mask of shirt and the inverse mask
+        img2gray = cv2.cvtColor(warped,cv2.COLOR_BGR2GRAY)
+        ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
+        mask_inv = cv2.bitwise_not(mask)
+        # Get background from source image to replace
+        sourceBG = cv2.bitwise_and(roi,roi,mask = mask_inv)
+        # Get the foreground of the shirt
+        shirtFG = cv2.bitwise_and(warped,warped,mask = mask)
+        # Put shirt in region of interest and put it onto the source
+        dst = cv2.add(sourceBG,shirtFG, dtype=0)
+        source[0:rows, 0:cols] = dst
+        return source
 
     def pygame_to_cvimage(self, surface):
-        """Convert a pygame surface into a cv image"""
-        # image = np.empty([960, 540, 3], dtype=type(0))
-        # for i in range(960):
-        #     for j in range(540):
-        #         image[i, j] = pygame.surfarray.pixels2d(surface)[i,j]
-        #cv2.imshow("a",image)
-        image = np.array(pygame.surfarray.pixels2d(surface),dtype=type(0))
-        #image = np.array(surface.get_buffer(),dtype=type(0))
-
+        image = np.array(pygame.surfarray.pixels3d(surface),dtype='uint16')
+        image = np.transpose(image,(1,0,2))
         return image
 
-    def cvimage_to_pygame(self,image):
-        # print(image.tostring())
-        """Convert cvimage into a pygame image"""
-        return pygame.surfarray.make_surface(np.array(image))
-        #return pygame.image.frombuffer(image.tostring(), (960, 540),
-        #                           "RGB")
+    def cvimage_to_pygame(self, image):
+        surface =  pygame.surfarray.make_surface(image)
+        return surface.convert()
+
+    def runLoop(self):
+        # Pygame events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: return False
+        # Reads and processes body frame from kinect
+        if self.kinect.has_new_body_frame():
+            self.bodies = self.kinect.get_last_body_frame()
+            self.updateBodies()
+        # Reads color images from kinect
+        if self.kinect.has_new_color_frame():
+            frame = self.kinect.get_last_color_frame()
+            self.drawColorFrame(frame, self.frameSurface)
+            frame = None
+        self.drawScreen()
+        if self.done: return False
+        self.clock.tick(60)
+        return True
 
     def run(self):
         while self.runLoop():
