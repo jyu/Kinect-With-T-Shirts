@@ -89,6 +89,27 @@ class Game(object):
         self.sleevesColor = [61, 187, 198]
         self.nextColor = [0,0,0]
         self.initGUILocks()
+        self.initCloset()
+
+    def initCloset(self):
+        self.addCloset = (
+                    [
+                    shirt(800, -400, 0, self.frameSurface,
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                        60,100,10),
+                    shirt(800, 0, 0, self.frameSurface,
+                        [(200,0,0),(61, 187, 198),(43, 156, 54)],
+                        60,100,10),
+                    shirt(800, 400, 0, self.frameSurface,
+                        [(61, 187, 198),(43, 156, 54),(200,0,0)],
+                        60,100,10)
+                    ])
+        self.closetColors = (
+                        [
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                        [(200,0,0),(61, 187, 198),(43, 156, 54)],
+                        [(61, 187, 198),(43, 156, 54),(200,0,0)]
+                        ])
 
     def initGUIModes(self):
         # Inits different GUI modes
@@ -150,6 +171,8 @@ class Game(object):
         self.initShoulderHip()
         self.initArm()
         self.initBody()
+        self.defaultBody = (shirt(0, 0, 0, self.frameSurface,
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)]))
 
     def initShoulderHip(self):
         # Shoulder and hip joints for each person
@@ -218,7 +241,7 @@ class Game(object):
         # Converts sensor coordinate Y to screen coordinates
         screenY = (
             -1 *
-            (sensorPosY - self.sensorScreenHeight / 2) *
+ -           (sensorPosY - self.sensorScreenHeight / 2) *
             (self.screenHeight / self.sensorScreenHeight)
         )
         return screenY
@@ -481,19 +504,7 @@ class Game(object):
             self.lock[i] = True
             if rHandY <= 360:
                 self.mode = self.CLOSET
-                self.closetModel.shapes.extend(
-                    [
-                    shirt(800, -400, 0, self.frameSurface,
-                        [(43, 156, 54),(200,0,0),(61, 187, 198)],
-                        60,100,10),
-                    shirt(800, 0, 0, self.frameSurface,
-                        [(200,0,0),(61, 187, 198),(43, 156, 54)],
-                        60,100,10),
-                    shirt(800, 400, 0, self.frameSurface,
-                        [(61, 187, 198),(43, 156, 54),(200,0,0)],
-                        60,100,10)
-                    ])
-
+                self.closetModel.shapes.extend(self.addCloset)
             elif rHandY > 360 and rHandY < 720: self.mode = self.DESIGN
             elif rHandY < 1080: self.mode = self.CAMERA
 
@@ -501,11 +512,11 @@ class Game(object):
         # Right Panel
         if rHandX >= 1520:
             if rHandY <= 360:
-                self.nextColors = [(43, 156, 54),(200,0,0),(61, 187, 198)]
+                self.nextColors = self.closetColors[0]
             elif rHandY > 360 and rHandY < 720:
-                self.nextColors = [(200,0,0),(61, 187, 198),(43, 156, 54)]
+                self.nextColors = self.closetColors[1]
             elif rHandY < 1080:
-                self.nextColors = [(61, 187, 198),(43, 156, 54),(200,0,0)]
+                self.nextColors = self.closetColors[2]
         # Change Colors
         if rHandY < 30 and lHandY < 30:
             for shape in self.model.shapes:
@@ -684,9 +695,7 @@ class Game(object):
                     # Adds a new body to model
                     prevLen = len(self.trackedBodies)
                     self.trackedBodies[i] = [prevLen, True]
-                    self.model.shapes.append(
-                        shirt(0, 0, 0, self.frameSurface,
-                        [(43, 156, 54),(200,0,0),(61, 187, 198)]))
+                    self.model.shapes.append(self.defaultBody)
                 # Updates each shirt iwth joint information
                 joints = body.joints
                 self.updateArms(joints, self.trackedBodies[i][0])
