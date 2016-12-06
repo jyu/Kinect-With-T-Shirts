@@ -6,6 +6,9 @@ import cv2
 import os
 
 # 3D engine
+# Jerry Yu
+# AndrewID: jerryy
+# Section I
 
 # Guided by pseudocode from this tutorial:
 # https://gamedevelopment.tutsplus.com/tutorials/lets-build-a-3d-graphics-engine-points-vectors-and-basic-concepts--gamedev-8143

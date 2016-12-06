@@ -12,6 +12,9 @@ import cv2
 from Engine3D import *
 
 # Kinect Runner
+# Jerry Yu
+# AndrewID: jerryy
+# Section I
 
 # Guided by Kinect Workshop and FlapPyKinect
 # https://onedrive.live.com/?authkey=%21AMWDgqPgtkPzsAM&id=ED75CBDC5E4AB0FE%211
