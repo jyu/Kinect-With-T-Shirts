@@ -546,10 +546,7 @@ class Game(object):
                 elif rHandY <= step*6: self.nextColor = [63,72,204]
                 elif rHandY <= step*7: self.nextColor = [163,73,164]
             self.lock[i] = True
-            for shape in self.model.shapes:
-                if part == "Sleeves": shape.colors[2] = tuple(self.nextColor)
-                elif part == "Sides": shape.colors[0] = tuple(self.nextColor)
-                elif part == "Front": shape.colors[1] = tuple(self.nextColor)
+            self.applyNextColor()
         if rHandX <= 1400: self.lock[i] = False
 
     def updateMixPart(self, rHandX, rHandY, lHandY, i, part):
@@ -563,26 +560,29 @@ class Game(object):
         # Right Panel
         if rHandX >= 1520:
             if not self.lock[i]:
-                if rHandY <= 360:
-                    self.nextColor[0] += 20 * self.sign
+                if rHandY <= 360: self.nextColor[0] += 20 * self.sign
                 elif rHandY > 360 and rHandY < 720:
                     self.nextColor[1] += 20 * self.sign
                 elif rHandY < self.screenHeight:
                     self.nextColor[2] += 20 * self.sign
             self.lock[i] = True
-        if rHandX <= 1400:
-            self.lock[i] = False
+        if rHandX <= 1400: self.lock[i] = False
+        self.applyNextColorBounds()
+        self.applyNextColor()
+
+    def applyNextColor(self):
+        for shape in self.model.shapes:
+            if part == "Sleeves": shape.colors[2] = tuple(self.nextColor)
+            elif part == "Sides": shape.colors[0] = tuple(self.nextColor)
+            elif part == "Front": shape.colors[1] = tuple(self.nextColor)
+
+    def applyNextColorBounds(self):
         self.nextColor[0] = min(255, self.nextColor[0])
         self.nextColor[1] = min(255, self.nextColor[1])
         self.nextColor[2] = min(255, self.nextColor[2])
         self.nextColor[0] = max(0, self.nextColor[0])
         self.nextColor[1] = max(0, self.nextColor[1])
         self.nextColor[2] = max(0, self.nextColor[2])
-
-        for shape in self.model.shapes:
-            if part == "Sleeves": shape.colors[2] = tuple(self.nextColor)
-            elif part == "Sides": shape.colors[0] = tuple(self.nextColor)
-            elif part == "Front": shape.colors[1] = tuple(self.nextColor)
 
     def updateMixSleeves(self, rHandX, rHandY, lHandY, i):
         # Flip sign gesture
