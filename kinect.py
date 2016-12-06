@@ -132,14 +132,14 @@ class Game(object):
         self.tempScreenShot = None
 
     def initScreenVar(self):
-        # screen variables
+        # Screen variables
         self.screenWidth = 1920
         self.screenHeight = 1080
         self.sensorScreenHeight = 1.2
         self.sensorScreenWidth = 3
         self.cornerToMiddleConstant = 1000
-        self.shirtCompensationHeight = 50
-        self.shirtCompensationWidth = 50
+        self.shirtHeightConstant = 50
+        self.shirtWidthConstant = 50
         self.modelAngle = 20
         self.shLift = 40
 
@@ -147,8 +147,10 @@ class Game(object):
         # body variables
         self.initShoulderHip()
         self.initArm()
+        self.initBody()
 
     def initShoulderHip(self):
+        # Shoulder and hip joints for each person
         self.yLeftShoulder = [0,0,0,0,0,0]
         self.xLeftShoulder = [0,0,0,0,0,0]
         self.zLeftShoulder = [0,0,0,0,0,0]
@@ -161,9 +163,14 @@ class Game(object):
         self.xRightHip = [0,0,0,0,0,0]
         self.yRightHip = [0,0,0,0,0,0]
         self.zRightHip = [0,0,0,0,0,0]
-
+        # Preps body calculations
+        self.partsCount = 4
+        self.angleXZAdjustment = 3.8/5
+        self.zAdjustment = 600/1.5
+        self.radToDeg = 180.0/math.pi
 
     def initArm(self):
+        # Arm joints for each person
         self.xLeftElbow = [1,1,1,1,1,1]
         self.yLeftElbow = [1,1,1,1,1,1]
         self.xRightElbow = [1,1,1,1,1,1]
@@ -176,6 +183,18 @@ class Game(object):
         self.yLeftHand = [0,0,0,0,0,0]
         self.leftDownSwing = [True, True, True, True, True, True]
         self.rightDownSwing = [True, True, True, True, True, True]
+        self.initArmCalc()
+
+    def initArmCalc(self):
+        self.downSwingAng = -1.4
+        self.divByZeroVar = 0.01
+
+    def initBody(self):
+        # Body Vars for calculations
+        self.rightPart, self.leftPart, self.upPart, self.downPart = 0, 0, 0, 0
+        self.bodyX1, self.bodyX2 = 0, 0
+        self.bodyY2, self.bodyY2 = 0, 0
+        self.bodyZ = 0
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -186,13 +205,15 @@ class Game(object):
         target_surface.unlock()
 
     def sensorToScreenX(self, sensorPosX):
+        # Converts sensor coordinate X to screen coordinates
         screenX = (
-            sensorPosX * (self.screenWidth / 3) +
+            sensorPosX * (self.screenWidth / self.sensorScreenWidth) +
             self.cornerToMiddleConstant
         )
         return screenX
 
     def sensorToScreenY(self, sensorPosY):
+        # Converts sensor coordinate Y to screen coordinates
         screenY = (
             -1 *
             (sensorPosY - self.sensorScreenHeight / 2) *
@@ -201,7 +222,7 @@ class Game(object):
         return screenY
 
     def data(self, joints, type, z=False):
-        # gets data from joints list
+        # Gets data from joints list
         ret = joints[getattr(PyKinectV2, "JointType_" + type)].Position
         if z: return (ret.x,ret.y,ret.z)
         return (ret.x, ret.y)
@@ -223,27 +244,14 @@ class Game(object):
         self.updateBodyVars(i)
 
     def updateBodyVars(self, i):
-        # XYZ movement calculations
-        rightPart = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
-        leftPart = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
-        upPart = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
-        downPart = (self.yRightHip[i] + self.yLeftHip[i]) / 2
-        zAvg = (self.zRightShoulder[i] + self.zLeftShoulder[i]
-                + self.zRightHip[i] + self.zLeftHip[i]) / 4
-        # Converts sensor coords to pygame screen coords
-        bodyX1 = self.sensorToScreenX(rightPart) + self.shirtCompensationWidth
-        bodyY1 = self.sensorToScreenY(upPart)
-        bodyX2 = self.sensorToScreenX(leftPart) - self.shirtCompensationWidth
-        bodyY2 = self.sensorToScreenY(downPart) - self.shirtCompensationHeight
-        bodyZ = zAvg * 600/1.5
-        #bodyZ = 600
-        #print(zAvg)
-        bodyCenterX = ((bodyX1 + bodyX2) / 2) - self.screenWidth/2
-        bodyCenterY = ((bodyY1 + bodyY2) / 2) - self.screenHeight/2
-        bodyWidth = bodyX2 - bodyX1
-        bodyHeight = -1 * (bodyY1 - bodyY2)
+        # Get XYZ movement calculations
+        self.getBodyParts(i)
+        zAvg = self.getZAvg(i)
+        # Convert to screen
+        self.getPygameBodyCoords(i)
+        (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight) = self.getBodyCoord(i)
         # Rotation calculations
-        angleXZ = 3.8/5 * self.getAngleXZ(i)
+        angleXZ = self.angleXZAdjustment * self.getAngleXZ(i)
         angleXZ += self.angleCorrection(bodyCenterX)
         # Update body shape in model
         self.model.shapes[i].update(bodyCenterX,bodyCenterY,
@@ -253,10 +261,40 @@ class Game(object):
                                     self.rightArmAngle[i],
                                     bodyZ)
 
+    def getBodyParts(self, i):
+        # Gets 4 sides of the body
+        self.rightPart = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
+        self.leftPart = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
+        self.upPart = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
+        self.downPart = (self.yRightHip[i] + self.yLeftHip[i]) / 2
+
+    def getZAvg(self, i):
+        # Gets average z of the body
+        return (self.zRightShoulder[i] + self.zLeftShoulder[i]
+                + self.zRightHip[i] + self.zLeftHip[i]) / self.partsCount
+
+    def getBodyCoord(self):
+        bodyCenterX = ((self.bodyX1 + self.bodyX2) / 2) - self.screenWidth / 2
+        bodyCenterY = ((self.bodyY1 + self.bodyY2) / 2) - self.screenHeight / 2
+        bodyWidth = self.bodyX2 - self.bodyX1
+        bodyHeight = -1 * (self.bodyY1 - self.bodyY2)
+        return (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
+
+    def getPygameBodyCoords(self, i):
+        # Converts sensor coords to pygame screen coords
+        self.bodyX1 = self.sensorToScreenX(rightPart) + self.shirtWidthConstant
+        self.bodyY1 = self.sensorToScreenY(upPart)
+        self.bodyX2 = self.sensorToScreenX(leftPart) - self.shirtWidthConstant
+        self.bodyY2 = self.sensorToScreenY(downPart) - self.shirtHeightConstant
+        self.bodyZ = zAvg * self.zAdjustment
+        #self.bodyZ = 600
+        #print(zAvg)
+
     def angleCorrection(self, bodyX):
         # As person moves along the X, there is automatic angle added on because
         # of difference in Z of shoulders. This function corrects it so standing
         # straight on an X shold give an angleXZ of 0
+        # Got function from running cubic regression on data gathered by kinect
         # Function for correcting:
         return -1 * (bodyX**3 * -4*10**-8 + bodyX**2 * 6*10**-6 -
                     bodyX * 0.0081)
@@ -266,7 +304,7 @@ class Game(object):
         # Convert to degrees for debugging and testing readibility
         return (math.atan2(self.zRightShoulder[i] - self.zLeftShoulder[i],
                           self.xRightShoulder[i] - self.xLeftShoulder[i])
-                           * 180.0/math.pi)
+                           * self.radToDeg)
 
     def updateArms(self, joints, i):
         # Updates arm variables
@@ -276,27 +314,25 @@ class Game(object):
         self.updateRightArm(i)
 
     def updateLeftArm(self, i):
-        # left arm
+        # Left arm
         xShould = self.sensorToScreenX(self.xLeftShoulder[i])
         yShould = self.sensorToScreenY(self.yLeftShoulder[i])+self.shLift
         xElb = self.sensorToScreenX(self.xLeftElbow[i])
         yElb = self.sensorToScreenY(self.yLeftElbow[i])
-
         try:
             theta = math.atan((yShould - yElb)/(xElb - xShould))
         except:
-            theta = math.atan((yShould - yElb)/(xElb - xShould + .01))
+            theta = math.atan((yShould-yElb)/(xElb-xShould +self.divByZeroVar))
         thetaPrime = math.pi - math.pi/2 - theta
-
-        if theta <= 0 and theta >= -1.4: self.leftDownSwing[i] = False
+        if theta <= 0 and theta >= self.downSwingAng:
+            self.leftDownSwing[i] = False
         elif theta >= 0: self.leftDownSwing[i] = True
-        if theta < -1.4 and self.leftDownSwing[i]:
-            theta = 1.57
-
+        if theta < self.downSwingAng and self.leftDownSwing[i]:
+            theta = math.pi/2
         self.leftArmAngle[i] = theta
 
     def updateRightArm(self, i):
-        # right arm
+        # Right arm
         xShould = self.sensorToScreenX(self.xRightShoulder[i])
         yShould = self.sensorToScreenY(self.yRightShoulder[i])+self.shLift
         xElb = self.sensorToScreenX(self.xRightElbow[i])
@@ -304,13 +340,13 @@ class Game(object):
         try:
             theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
         except:
-            theta = -1 * math.atan((yShould - yElb)/(xElb - xShould + .01))
+            theta =-1*math.atan((yShould-yElb)/(xElb-xShould+self.divByZeroVar))
         thetaPrime = math.pi - math.pi/2 - theta
-
-        if theta <= 0 and theta >= -1.4: self.rightDownSwing[i] = False
+        if theta <= 0 and theta >= self.downSwingAng:
+            self.rightDownSwing[i] = False
         elif theta >= 0: self.rightDownSwing[i] = True
-        if theta < -1.4 and self.rightDownSwing[i]:
-            theta = 1.57
+        if theta < self.downSwingAng and self.rightDownSwing[i]:
+            theta = math.pi/2
         self.rightArmAngle[i] = theta
 
     def updateHands(self, joints, i):
