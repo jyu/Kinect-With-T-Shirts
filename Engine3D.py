@@ -539,35 +539,6 @@ class shirt(object):
                     self.points.append(Point(x, y, z, self.surface, view))
                     index += 1
 
-    # def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
-    #     # Right Sleeve
-    #     index = 12
-    #     XOperations, YOperations = [-2.5,-.5,-.5,-2.5], [-0.5,-0.5,-1,-1]
-    #     for zOp in [.6,1.6]:
-    #         for i in range(len(XOperations)):
-    #             xOp, yOp = XOperations[i], YOperations[i]
-    #             x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
-    #             if rightAng >= 0: preX, preY = 30, 0
-    #             else: preX,preY = 0, -20
-    #             x, y = x - xSide + preX, y + ySide + preY
-    #             x, y, z = self.rotate(
-    #                           x, y, z,
-    #                            -rightAng,
-    #                           "XY"
-    #                           )
-    #             x, y = x - xSide + 50, y - ySide
-    #             x, y, z = self.rotate(
-    #                           x, y, z,
-    #                           angleXZ,
-    #                           "XZ"
-    #                           )
-
-    #             # self.points[index].set(x, y, z, view)
-    #             # self.points[index].updateDrawCoord
-
-    #             self.points.append(Point(x, y, z, self.surface, view))
-    #             # index += 1
-
     def updateTop(self, xSide, ySide, angleXZ, view):
         # Right Sleeve
         index = 18
@@ -581,9 +552,6 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                # self.points[index].set(x, y, z, view)
-                # self.points[index].updateDrawCoord
-
                 self.points.append(Point(x, y, z, self.surface, view))
                 index += 1
 
@@ -618,10 +586,6 @@ class shirt(object):
         return np.dot(orig,rotMatrix)
 
     def draw(self):
-        # Draw points
-        # self.drawPoints()
-        # Draw edges
-        # self.drawEdges()
         # Draw Faces
         self.drawFaces()
 
@@ -643,7 +607,6 @@ class shirt(object):
 
     def drawFaces(self):
         # Draw faces
-
         # Sort faces so only visible faces are shown
         indicies = self.sortFacesByZ()
         for faceIndex in indicies:
@@ -680,7 +643,6 @@ class shirt(object):
                 point = self.points[pointIndex]
                 pointList.append((point.drawX, point.drawY))
         return pointList
-
 
     def sortFacesByZ(self):
         # Sort the faces by their average Z value

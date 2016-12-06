@@ -338,7 +338,7 @@ class Game(object):
         elif (abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and
                 rHandY > 30):
             self.backToMenu()
-        self.updateModes()
+        self.updateModes(rHandX, rHandY, lHandY, lHandX, i)
 
     def backToMenu(self):
         if self.mode == self.CLOSET:
@@ -352,16 +352,16 @@ class Game(object):
             self.tempScreenshot = None
         self.mode = self.MENU
 
-    def updateModes(self):
+    def updateModes(self, rHandX, rHandY, lHandY, lHandX, i):
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY,i)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.CAMERA: self.updateCamera()
         elif self.mode == self.CAMERADONE: self.updateCameraDone(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
-        else: self.checkDesignModes()
+        else: self.checkDesignModes(rHandX,rHandY,lHandY,lHandX,i)
 
-    def checkDesignModes(self):
+    def checkDesignModes(self, rHandX,rHandY,lHandY,lHandX,i):
         if self.mode == self.DESIGNFRONT:
             self.updateFront(rHandX,rHandY,lHandY,lHandX,i)
         elif self.mode == self.DESIGNFRONTMIX:
@@ -421,7 +421,7 @@ class Game(object):
             os.chdir(mainPath)
             self.cameraStart = 0
             self.mode = self.CAMERADONE
-        timeLeft = self.cameraTimer - (pygame.time.get_ticks() - self.cameraStart)
+        timeLeft = self.cameraTimer-(pygame.time.get_ticks()-self.cameraStart)
         if timeLeft > 100:
             pygame.draw.rect(
                 self.frameSurface,
@@ -787,7 +787,7 @@ class Game(object):
             surface_to_draw = self.addCostume(surface_to_draw)
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
-        # Blits GUI images onto shirt
+        # Blits GUI images onto image
         self.blitGUI()
         pygame.display.update()
 
@@ -810,7 +810,6 @@ class Game(object):
                     point = pointList[i]
                     pointList[i] = [point[0]/2, point[1]/2]
                 source = self.warp(pointList, source)
-
         else:
             pass
             # cv2.imwrite(os.getcwd()+"/gg.png", source)

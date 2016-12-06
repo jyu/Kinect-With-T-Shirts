@@ -4,7 +4,6 @@ kappa
 
 REMOVE TESTING KEYPRESSES
 
-Features Left:
 better T-Shirt (sleeves) !!!!!!!!!
 better fit (play with z axis) (callibration feature) !!!!!!!!!!!
 use constants to correct the x standing away from center !!!!!!!!!!!
@@ -18,4 +17,6 @@ screenshotting (done)
 DESIGN
 record video to show kosbie during OH
 
-lmao cool designs/imports
+literally test everything in design and inits
+test the homography
+test all features and blitting bc of reordering
