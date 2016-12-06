@@ -810,30 +810,6 @@ class Game(object):
                     point = pointList[i]
                     pointList[i] = [point[0]/2, point[1]/2]
                 source = self.warp(pointList, source)
-        else:
-            pass
-            # cv2.imwrite(os.getcwd()+"/gg.png", source)
-            # pointList = np.array([[50,70],[176,100],[176,250],[50,180]])
-            # source = self.warp(pointList, source)
-            # h, status = cv2.findHomography(self.frontImagePoints, pointList)
-            # warped = cv2.warpPerspective(self.frontImage, h, (source.shape[1],source.shape[0]))
-            # # ROI
-            # rows,cols,channels = warped.shape
-            # roi = source[0:rows, 0:cols]
-            # # Now create a mask of logo and create its inverse mask also
-            # img2gray = cv2.cvtColor(warped,cv2.COLOR_BGR2GRAY)
-            # ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
-            # mask_inv = cv2.bitwise_not(mask)
-
-            # # Now black-out the area of logo in ROI
-            # sourceBG = cv2.bitwise_and(roi,roi,mask = mask_inv)
-
-            # # Take only region of logo from logo image.
-            # shirtFG = cv2.bitwise_and(warped,warped,mask = mask)
-
-            # # Put logo in ROI and modify the main image
-            # dst = cv2.add(sourceBG,shirtFG, dtype=0)
-            # source[0:rows, 0:cols] = dst
 
         result = np.transpose(source,(1,0,2))
         image = self.cvimage_to_pygame(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
