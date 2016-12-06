@@ -405,16 +405,16 @@ class Game(object):
     def checkDesignModes(self, rHandX,rHandY,lHandY,lHandX,i):
         if self.mode == self.DESIGNFRONT:
             self.updatePart(rHandX,rHandY,lHandY,lHandX,i,"Front")
-        elif self.mode == self.DESIGNFRONTMIX:
-            self.updateMixFront(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNSIDES:
             self.updatePart(rHandX,rHandY,lHandY,lHandX,i,"Sides")
-        elif self.mode == self.DESIGNSIDESMIX:
-            self.updateMixSides(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNSLEEVES:
             self.updatePart(rHandX,rHandY,lHandY,lHandX,i,"Sleeves")
+        elif self.mode == self.DESIGNFRONTMIX:
+            self.updateMixPart(rHandX,rHandY,lHandY,i,"Front")
+        elif self.mode == self.DESIGNSIDESMIX:
+            self.updateMixPart(rHandX,rHandY,lHandY,i,"Sides")
         elif self.mode == self.DESIGNSLEEVESMIX:
-            self.updateMixSleeves(rHandX,rHandY,lHandY,i)
+            self.updateMixPart(rHandX,rHandY,lHandY,i,"Sleeves")
 
     def updateCameraDone(self,rHandX,rHandY,lHandY,i):
         pygame.draw.rect(
@@ -583,96 +583,6 @@ class Game(object):
         self.nextColor[0] = max(0, self.nextColor[0])
         self.nextColor[1] = max(0, self.nextColor[1])
         self.nextColor[2] = max(0, self.nextColor[2])
-
-    def updateMixSleeves(self, rHandX, rHandY, lHandY, i):
-        # Flip sign gesture
-        if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
-            and rHandX < 1520):
-            self.sign *= -1
-            self.flipLock[i] = True
-        if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
-            self.flipLock[i] = False
-        # Right Panel
-        if rHandX >= 1520:
-            if not self.lock[i]:
-                if rHandY <= 360:
-                    self.sleevesColor[0] += 20 * self.sign
-                elif rHandY > 360 and rHandY < 720:
-                    self.sleevesColor[1] += 20 * self.sign
-                elif rHandY < self.screenHeight:
-                    self.sleevesColor[2] += 20 * self.sign
-            self.lock[i] = True
-        if rHandX <= 1400:
-            self.lock[i] = False
-        self.sleevesColor[0] = min(255, self.sleevesColor[0])
-        self.sleevesColor[1] = min(255, self.sleevesColor[1])
-        self.sleevesColor[2] = min(255, self.sleevesColor[2])
-        self.sleevesColor[0] = max(0, self.sleevesColor[0])
-        self.sleevesColor[1] = max(0, self.sleevesColor[1])
-        self.sleevesColor[2] = max(0, self.sleevesColor[2])
-
-        for shape in self.model.shapes:
-            shape.colors[2] = tuple(self.sleevesColor)
-
-    def updateMixSides(self, rHandX, rHandY, lHandY, i):
-        # Flip sign gesture
-        if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
-            and rHandX < 1520):
-            self.sign *= -1
-            self.flipLock[i] = True
-        if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
-            self.flipLock[i] = False
-        # Right Panel
-        if rHandX >= 1520:
-            if not self.lock[i]:
-                if rHandY <= 360:
-                    self.sidesColor[0] += 20 * self.sign
-                elif rHandY > 360 and rHandY < 720:
-                    self.sidesColor[1] += 20 * self.sign
-                elif rHandY < 1080:
-                    self.sidesColor[2] += 20 * self.sign
-            self.lock[i] = True
-        if rHandX <= 1400:
-            self.lock[i] = False
-        self.sidesColor[0] = min(255, self.sidesColor[0])
-        self.sidesColor[1] = min(255, self.sidesColor[1])
-        self.sidesColor[2] = min(255, self.sidesColor[2])
-        self.sidesColor[0] = max(0, self.sidesColor[0])
-        self.sidesColor[1] = max(0, self.sidesColor[1])
-        self.sidesColor[2] = max(0, self.sidesColor[2])
-
-        for shape in self.model.shapes:
-            shape.colors[0] = tuple(self.sidesColor)
-
-    def updateMixFront(self, rHandX, rHandY, lHandY, i):
-        # Flip sign gesture
-        if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
-            and rHandX < 1520):
-            self.sign *= -1
-            self.flipLock[i] = True
-        if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
-            self.flipLock[i] = False
-        # Right Panel
-        if rHandX >= 1520:
-            if not self.lock[i]:
-                if rHandY <= 360:
-                    self.frontColor[0] += 20 * self.sign
-                elif rHandY > 360 and rHandY < 720:
-                    self.frontColor[1] += 20 * self.sign
-                elif rHandY < 1080:
-                    self.frontColor[2] += 20 * self.sign
-            self.lock[i] = True
-        if rHandX <= 1400:
-            self.lock[i] = False
-        self.frontColor[0] = min(255, self.frontColor[0])
-        self.frontColor[1] = min(255, self.frontColor[1])
-        self.frontColor[2] = min(255, self.frontColor[2])
-        self.frontColor[0] = max(0, self.frontColor[0])
-        self.frontColor[1] = max(0, self.frontColor[1])
-        self.frontColor[2] = max(0, self.frontColor[2])
-
-        for shape in self.model.shapes:
-            shape.colors[1] = tuple(self.frontColor)
 
     def drawGUI(self):
         if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
