@@ -550,67 +550,7 @@ class Game(object):
                 if part = "Sleeves": shape.colors[2] = tuple(self.nextColor)
                 elif part = "Sides": shape.colors[0] = tuple(self.nextColor)
                 elif part = "Front": shape.colors[1] = tuple(self.nextColor)
-
-        if rHandX <= 1400:
-            self.lock[i] = False
-
-    def updateSleeves(self, rHandX, rHandY, lHandY, lHandX, i):
-        step = 154.4
-        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
-            self.mode = self.DESIGNSLEEVESMIX
-        elif rHandX >= 1520:
-            if not self.lock[i]:
-                if rHandY <= step: self.sleevesColor = [237,28,36]
-                elif rHandY <= step*2: self.sleevesColor = [255,127,39]
-                elif rHandY <= step*3: self.sleevesColor = [255,242,0]
-                elif rHandY <= step*4: self.sleevesColor = [34,177,76]
-                elif rHandY <= step*5: self.sleevesColor = [0,162,232]
-                elif rHandY <= step*6: self.sleevesColor = [63,72,204]
-                elif rHandY <= step*7: self.sleevesColor = [163,73,164]
-            self.lock[i] = True
-            for shape in self.model.shapes:
-                shape.colors[2] = tuple(self.sleevesColor)
-
-        if rHandX <= 1400:
-            self.lock[i] = False
-
-    def updateSides(self, rHandX, rHandY, lHandY, lHandX, i):
-        step = 154.4
-        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
-            self.mode = self.DESIGNSIDESMIX
-        elif rHandX >= 1520:
-            if not self.lock[i]:
-                if rHandY <= step: self.sidesColor = [237,28,36]
-                elif rHandY <= step*2: self.sidesColor = [255,127,39]
-                elif rHandY <= step*3: self.sidesColor = [255,242,0]
-                elif rHandY <= step*4: self.sidesColor = [34,177,76]
-                elif rHandY <= step*5: self.sidesColor = [0,162,232]
-                elif rHandY <= step*6: self.sidesColor = [63,72,204]
-                elif rHandY <= step*7: self.sidesColor = [163,73,164]
-            self.lock[i] = True
-            for shape in self.model.shapes:
-                shape.colors[0] = tuple(self.sidesColor)
-        if rHandX <= 1400:
-            self.lock[i] = False
-
-    def updateFront(self, rHandX, rHandY, lHandY, lHandX, i):
-        step = 154.4
-        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
-            self.mode = self.DESIGNFRONTMIX
-        elif rHandX >= 1520:
-            if not self.lock[i]:
-                if rHandY <= step: self.frontColor = [237,28,36]
-                elif rHandY <= step*2: self.frontColor = [255,127,39]
-                elif rHandY <= step*3: self.frontColor = [255,242,0]
-                elif rHandY <= step*4: self.frontColor = [34,177,76]
-                elif rHandY <= step*5: self.frontColor = [0,162,232]
-                elif rHandY <= step*6: self.frontColor = [63,72,204]
-                elif rHandY <= step*7: self.frontColor = [163,73,164]
-            self.lock[i] = True
-            for shape in self.model.shapes:
-                shape.colors[1] = tuple(self.frontColor)
-        if rHandX <= 1400:
-            self.lock[i] = False
+        if rHandX <= 1400: self.lock[i] = False
 
     def updateMixSleeves(self, rHandX, rHandY, lHandY, i):
         # Flip sign gesture
