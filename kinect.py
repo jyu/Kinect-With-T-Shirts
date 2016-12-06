@@ -14,7 +14,8 @@ from Engine3D import *
 # Kinect Runner
 
 # Guided by Kinect Workshop and FlapPyKinect
-# https://onedrive.live.com/?authkey=%21AMWDgqPgtkPzsAM&id=ED75CBDC5E4AB0FE%211096749&cid=ED75CBDC5E4AB0FE
+# https://onedrive.live.com/?authkey=%21AMWDgqPgtkPzsAM&id=ED75CBDC5E4AB0FE%211
+# 096749&cid=ED75CBDC5E4AB0FE
 # Learned homography from tutorial:
 # http://www.learnopencv.com/homography-examples-using-opencv-python-c/
 # Learned opencv masking from:
@@ -24,47 +25,44 @@ class Game(object):
     def __init__(self):
         pygame.init()
         self.initScreenVar()
+        self.initGame()
+        self.frameSurface = pygame.Surface(
+            (self.kinect.color_frame_desc.Width,
+             self.kinect.color_frame_desc.Height
+            ),
+            0,
+            32)
+        self.initBodyVar()
+        self.initModels()
+        self.initPics()
+        self.initGUIVars()
+        self.initDesignVars()
+
+    def initModels(self):
+        # Models from 3D engine to render
+        self.model = Model(self.frameSurface, [])
+        self.closetModel = Model(self.frameSurface,[])
+
+    def initGame(self):
         # screen updates
         self.clock = pygame.time.Clock()
         # set the width and height of the window to fit in screen
         self.screen = pygame.display.set_mode(
-            (960, 540),
+            (self.screenWidth//2, self.screenHeight//2),
             pygame.HWSURFACE | pygame.DOUBLEBUF,
             32
         )
-        # exit game
+        # Exit game
         self.done = False
         # color and body frames from kinect runtime object
         self.kinect = PyKinectRuntime.PyKinectRuntime(
             PyKinectV2.FrameSourceTypes_Color | PyKinectV2.FrameSourceTypes_Body
         )
-
         self.bodies = None
         self.trackedBodies = {}
-        self.frameSurface = pygame.Surface(
-            (
-                self.kinect.color_frame_desc.Width,
-                self.kinect.color_frame_desc.Height
-            ),
-            0,
-            32
-        )
-        self.initBodyVar()
-        self.model = Model(
-                        self.frameSurface,
-                        [
-                        # shirt(0, 0, 0, self.frameSurface,
-                        #     [(43, 156, 54),(200,0,0),(61, 187, 198)])
-                        ])
-        self.closetModel = Model(
-                                self.frameSurface,
-                                [],
-                                )
-        self.initPics()
-        self.initGUIVars()
-        self.initDesignVars()
 
     def initDesignVars(self):
+        # Gradients for different colors for design screen
         self.redGradient = [(255,31,82), (245,29,75), (236,27,68), (226,25,61),
                             (217,24,54), (207,22,48), (198,20,41), (188,19,34),
                             (179,17,27), (169,15,20), (160,14,14)]
@@ -78,6 +76,17 @@ class Game(object):
                              (10,23,197), (9,0,191)]
 
     def initGUIVars(self):
+        self.initGUIModes()
+        self.mode = self.MENU
+        # Inits colors for model
+        self.nextColors = [(43, 156, 54),(200,  0,0),(61, 187, 198)]
+        self.frontColor = [200, 0, 0]
+        self.sidesColor = [43, 156, 54]
+        self.sleevesColor = [61, 187, 198]
+        self.initGUILocks()
+
+    def initGUIModes(self):
+        # Inits different GUI modes
         self.MENU = 1
         self.CLOSET = 2
         self.DESIGN = 3
@@ -90,13 +99,6 @@ class Game(object):
         self.DESIGNFRONTMIX = 10
         self.DESIGNSIDESMIX = 11
         self.DESIGNSLEEVESMIX = 12
-        self.mode = self.MENU
-        self.nextColors = [(43, 156, 54),(200,  0,0),(61, 187, 198)]
-        self.frontColor = [200, 0, 0]
-        self.sidesColor = [43, 156, 54]
-        self.sleevesColor = [61, 187, 198]
-        self.initGUILocks()
-
 
     def initGUILocks(self):
         # Controls gui to make sure screens arent selected multiple times
@@ -134,8 +136,9 @@ class Game(object):
         self.sensorScreenWidth = 3
         self.cornerToMiddleConstant = 1000
         self.shirtCompensationHeight = 50
-        self.shirtCompensationWidth = 0
+        self.shirtCompensationWidth = 50
         self.modelAngle = 20
+        self.shLift = 40
 
     def initBodyVar(self):
         # body variables
@@ -182,8 +185,7 @@ class Game(object):
     def sensorToScreenX(self, sensorPosX):
         screenX = (
             sensorPosX * (self.screenWidth / 3) +
-            self.cornerToMiddleConstant +
-            self.shirtCompensationWidth
+            self.cornerToMiddleConstant
         )
         return screenX
 
@@ -196,6 +198,7 @@ class Game(object):
         return screenY
 
     def data(self, joints, type, z=False):
+        # gets data from joints list
         ret = joints[getattr(PyKinectV2, "JointType_" + type)].Position
         if z: return (ret.x,ret.y,ret.z)
         return (ret.x, ret.y)
@@ -214,7 +217,6 @@ class Game(object):
         (self.xRightShoulder[i],
         self.yRightShoulder[i],
         self.zRightShoulder[i]) = self.data(joints, "ShoulderRight", True)
-
         self.updateBodyVars(i)
 
     def updateBodyVars(self, i):
@@ -226,21 +228,19 @@ class Game(object):
         zAvg = (self.zRightShoulder[i] + self.zLeftShoulder[i]
                 + self.zRightHip[i] + self.zLeftHip[i]) / 4
         # Converts sensor coords to pygame screen coords
-        bodyX1 = self.sensorToScreenX(rightPart) + 50
+        bodyX1 = self.sensorToScreenX(rightPart) + self.shirtCompensationWidth
         bodyY1 = self.sensorToScreenY(upPart)
-        bodyX2 = self.sensorToScreenX(leftPart) - 50
+        bodyX2 = self.sensorToScreenX(leftPart) - self.shirtCompensationWidth
         bodyY2 = self.sensorToScreenY(downPart) - self.shirtCompensationHeight
         bodyZ = zAvg * 600/1.5
         #bodyZ = 600
         #print(zAvg)
-        bodyCenterX = ((bodyX1 + bodyX2) / 2) - 960
-        bodyCenterY = ((bodyY1 + bodyY2) / 2) - 540
+        bodyCenterX = ((bodyX1 + bodyX2) / 2) - self.screenWidth/2
+        bodyCenterY = ((bodyY1 + bodyY2) / 2) - self.screenHeight/2
         bodyWidth = bodyX2 - bodyX1
         bodyHeight = -1 * (bodyY1 - bodyY2)
         # Rotation calculations
         angleXZ = 3.8/5 * self.getAngleXZ(i)
-        #print(angleXZ, bodyCenterX)
-        #print(self.angleCorrection(bodyCenterX))
         angleXZ += self.angleCorrection(bodyCenterX)
         # Update body shape in model
         self.model.shapes[i].update(bodyCenterX,bodyCenterY,
@@ -254,6 +254,7 @@ class Game(object):
         # As person moves along the X, there is automatic angle added on because
         # of difference in Z of shoulders. This function corrects it so standing
         # straight on an X shold give an angleXZ of 0
+        # Function for correcting:
         return -1 * (bodyX**3 * -4*10**-8 + bodyX**2 * 6*10**-6 -
                     bodyX * 0.0081)
 
@@ -266,15 +267,15 @@ class Game(object):
 
     def updateArms(self, joints, i):
         # Updates arm variables
-        self.xLeftElbow[i], self.yLeftElbow[i] = self.data(joints, "ElbowLeft")
-        self.xRightElbow[i], self.yRightElbow[i] = self.data(joints, "ElbowRight")
+        self.xLeftElbow[i],self.yLeftElbow[i] = self.data(joints, "ElbowLeft")
+        self.xRightElbow[i],self.yRightElbow[i] = self.data(joints,"ElbowRight")
         self.updateLeftArm(i)
         self.updateRightArm(i)
 
     def updateLeftArm(self, i):
         # left arm
         xShould = self.sensorToScreenX(self.xLeftShoulder[i])
-        yShould = self.sensorToScreenY(self.yLeftShoulder[i]) + 40
+        yShould = self.sensorToScreenY(self.yLeftShoulder[i])+self.shLift
         xElb = self.sensorToScreenX(self.xLeftElbow[i])
         yElb = self.sensorToScreenY(self.yLeftElbow[i])
 
@@ -294,7 +295,7 @@ class Game(object):
     def updateRightArm(self, i):
         # right arm
         xShould = self.sensorToScreenX(self.xRightShoulder[i])
-        yShould = self.sensorToScreenY(self.yRightShoulder[i]) + 40
+        yShould = self.sensorToScreenY(self.yRightShoulder[i])+self.shLift
         xElb = self.sensorToScreenX(self.xRightElbow[i])
         yElb = self.sensorToScreenY(self.yRightElbow[i])
         try:
@@ -323,19 +324,6 @@ class Game(object):
         rHandY = self.sensorToScreenY(self.yRightHand[i])
         lHandX = self.sensorToScreenX(self.xLeftHand[i])
         lHandY = self.sensorToScreenY(self.yLeftHand[i])
-
-        # Draw Hands
-        # pygame.draw.rect(
-        #     self.frameSurface,
-        #     (0,0,200),
-        #     (rHandX, rHandY, 100, 100)
-        # )
-        # pygame.draw.rect(
-        #     self.frameSurface,
-        #     (200,200,0),
-        #     (lHandX, lHandY, 100, 100)
-        # )
-
         # Exit Button
         if lHandX < 200 and lHandY < 200:
             self.done = True
@@ -347,24 +335,34 @@ class Game(object):
                 self.closetModel.shapes.pop()
             self.mode = self.FULLSCREEN
         # Back to menu, gesture
-        elif abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and rHandY > 30:
-            if self.mode == self.CLOSET:
-                self.closetModel.shapes.pop()
-                self.closetModel.shapes.pop()
-                self.closetModel.shapes.pop()
-            elif self.mode == self.CAMERA:
-                self.cameraStart = 0
-            elif self.mode == self.CAMERADONE:
-                self.screenshot = None
-                self.tempScreenshot = None
-            self.mode = self.MENU
+        elif (abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and
+                rHandY > 30):
+            self.backToMenu()
+        self.updateModes()
+
+    def backToMenu(self):
+        if self.mode == self.CLOSET:
+            self.closetModel.shapes.pop()
+            self.closetModel.shapes.pop()
+            self.closetModel.shapes.pop()
+        elif self.mode == self.CAMERA:
+            self.cameraStart = 0
+        elif self.mode == self.CAMERADONE:
+            self.screenshot = None
+            self.tempScreenshot = None
+        self.mode = self.MENU
+
+    def updateModes(self):
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY,i)
         elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
         elif self.mode == self.CAMERA: self.updateCamera()
         elif self.mode == self.CAMERADONE: self.updateCameraDone(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
-        elif self.mode == self.DESIGNFRONT:
+        else: self.checkDesignModes()
+
+    def checkDesignModes(self):
+        if self.mode == self.DESIGNFRONT:
             self.updateFront(rHandX,rHandY,lHandY,lHandX,i)
         elif self.mode == self.DESIGNFRONTMIX:
             self.updateMixFront(rHandX,rHandY,lHandY,i)
@@ -468,13 +466,6 @@ class Game(object):
         if rHandY < 30 and lHandY < 30:
             for shape in self.model.shapes:
                 shape.colors = self.nextColors
-        # Rotation of Closet
-        # self.modelAngle += 1
-        # for i in range(len(self.model.shapes)):
-        #     if i == 0: pass
-        #     else:
-        #         shirt = self.model.shapes[i]
-        #         shirt.update(shirt.initX,shirt.initY,100,150,self.modelAngle,60,60)
 
     def updateDesign(self, rHandX, rHandY, lHandY, i):
         # Right Panel
@@ -534,7 +525,6 @@ class Game(object):
             self.lock[i] = True
             for shape in self.model.shapes:
                 shape.colors[0] = tuple(self.sidesColor)
-
         if rHandX <= 1400:
             self.lock[i] = False
 
@@ -554,7 +544,6 @@ class Game(object):
             self.lock[i] = True
             for shape in self.model.shapes:
                 shape.colors[1] = tuple(self.frontColor)
-
         if rHandX <= 1400:
             self.lock[i] = False
 
@@ -648,6 +637,17 @@ class Game(object):
         for shape in self.model.shapes:
             shape.colors[1] = tuple(self.frontColor)
 
+    def drawGUI(self):
+        if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
+        self.drawExit()
+        # Design Mix Screens
+        if self.mode in [self.DESIGNFRONTMIX,
+                         self.DESIGNSIDESMIX,
+                         self.DESIGNSLEEVESMIX
+                        ]:
+            redColor, greenColor, blueColor = self.getColors()
+            self.drawMixColors(redColor, greenColor, blueColor)
+
     def drawExit(self):
         # Exit Logo
         pygame.draw.rect(
@@ -663,39 +663,37 @@ class Game(object):
             10
             )
 
-    def drawGUI(self):
-        if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
-        self.drawExit()
-        # Design Front
-        if self.mode in [self.DESIGNFRONTMIX,self.DESIGNSIDESMIX,self.DESIGNSLEEVESMIX]:
-            if self.mode == self.DESIGNFRONTMIX:
-                redColor = self.redGradient[int(self.frontColor[0]/255 * 10)]
-                greenColor = self.greenGradient[int(self.frontColor[1]/255 * 10)]
-                blueColor = self.blueGradient[int(self.frontColor[2]/255 * 10)]
-            if self.mode == self.DESIGNSIDESMIX:
-                redColor = self.redGradient[int(self.sidesColor[0]/255 * 10)]
-                greenColor = self.greenGradient[int(self.sidesColor[1]/255 * 10)]
-                blueColor = self.blueGradient[int(self.sidesColor[2]/255 * 10)]
-            if self.mode == self.DESIGNSLEEVESMIX:
-                redColor = self.redGradient[int(self.sleevesColor[0]/255 * 10)]
-                greenColor = self.greenGradient[int(self.sleevesColor[1]/255 * 10)]
-                blueColor = self.blueGradient[int(self.sleevesColor[2]/255 * 10)]
+    def getColors(self):
+        if self.mode == self.DESIGNFRONTMIX:
+            redColor = self.redGradient[int(self.frontColor[0]/255 * 10)]
+            greenColor = self.greenGradient[int(self.frontColor[1]/255 * 10)]
+            blueColor = self.blueGradient[int(self.frontColor[2]/255 * 10)]
+        if self.mode == self.DESIGNSIDESMIX:
+            redColor = self.redGradient[int(self.sidesColor[0]/255 * 10)]
+            greenColor = self.greenGradient[int(self.sidesColor[1]/255 * 10)]
+            blueColor = self.blueGradient[int(self.sidesColor[2]/255 * 10)]
+        if self.mode == self.DESIGNSLEEVESMIX:
+            redColor = self.redGradient[int(self.sleevesColor[0]/255 * 10)]
+            greenColor = self.greenGradient[int(self.sleevesColor[1]/255 * 10)]
+            blueColor = self.blueGradient[int(self.sleevesColor[2]/255 * 10)]
+        return (redColor, greenColor, blueColor)
 
-            pygame.draw.rect(
-                self.frameSurface,
-                redColor,
-                (1520,0,400,360)
-                )
-            pygame.draw.rect(
-                self.frameSurface,
-                greenColor,
-                (1520,360,400,360)
-                )
-            pygame.draw.rect(
-                self.frameSurface,
-                blueColor,
-                (1520,720,400,360)
-                )
+    def drawMixColors(self, redColor, greenColor, blueColor):
+        pygame.draw.rect(
+            self.frameSurface,
+            redColor,
+            (1520,0,400,360)
+            )
+        pygame.draw.rect(
+            self.frameSurface,
+            greenColor,
+            (1520,360,400,360)
+            )
+        pygame.draw.rect(
+            self.frameSurface,
+            blueColor,
+            (1520,720,400,360)
+            )
 
     def blitCameraDone(self):
         # GUI for cameraDone mode
@@ -772,7 +770,6 @@ class Game(object):
         self.updateAllGUI()
         self.drawGUI()
 
-
     def drawScreen(self):
         self.drawAll()
         # Changes ratio of image to output to window
@@ -793,7 +790,6 @@ class Game(object):
         # Blits GUI images onto shirt
         self.blitGUI()
         pygame.display.update()
-
 
     def addCostume(self, image):
         # Guided by homography and opencv tutorials
@@ -855,7 +851,8 @@ class Game(object):
         roi = source[0:rows, 0:cols]
         # Create mask of shirt and the inverse mask
         img2gray = cv2.cvtColor(warped,cv2.COLOR_BGR2GRAY)
-        ret, mask = cv2.threshold(img2gray, 10, 255, cv2.THRESH_BINARY)
+        limit, maxColor = 10, 255
+        ret, mask = cv2.threshold(img2gray, limit, maxColor, cv2.THRESH_BINARY)
         mask_inv = cv2.bitwise_not(mask)
         # Get background from source image to replace
         sourceBG = cv2.bitwise_and(roi,roi,mask = mask_inv)
