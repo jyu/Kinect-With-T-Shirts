@@ -40,6 +40,7 @@ class Game(object):
         self.initPics()
         self.initGUIVars()
         self.initDesignVars()
+        self.jointPoints = []
 
     def initModels(self):
         # Models from 3D engine to render
@@ -698,6 +699,7 @@ class Game(object):
                     self.model.shapes.append(self.defaultBody)
                 # Updates each shirt iwth joint information
                 joints = body.joints
+                self.jointPoints = self.kinect.body_joints_to_color_space(joints)
                 self.updateArms(joints, self.trackedBodies[i][0])
                 self.updateHands(joints, self.trackedBodies[i][0])
                 self.updateBody(joints, self.trackedBodies[i][0])
