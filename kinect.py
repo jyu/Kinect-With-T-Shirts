@@ -426,31 +426,34 @@ class Game(object):
         if rHandX >= 1620 and not self.lock[i]:
             mainPath = os.getcwd()
             os.chdir("screenshots")
+            # Save
             if rHandY <= 360:
-                screenshotCount = 0
-                for fileName in os.listdir("."):
-                    if fileName.startswith("picture"):
-                        if int(fileName[7:-4]) >= screenshotCount:
-                            screenshotCount = int(fileName[7:-4]) + 1
-                    if fileName.startswith("screenshot"):
-                        name = "picture%d.png" % (screenshotCount)
-                        os.rename(fileName, name)
-                self.screenshot = None
-                self.tempScreenshot = None
+                self.saveImage()
                 self.nextMode = self.MENU
-            elif rHandY > 360 and rHandY < 720:
-                os.remove("screenshot.png")
-                self.screenshot = None
-                self.tempScreenshot = None
-                self.nextMode = self.MENU
-            elif rHandY < 1080:
-                os.remove("screenshot.png")
-                self.screenshot = None
-                self.tempScreenshot = None
-                self.nextMode = self.CAMERA
+            # Delete:
+            elif rHandY > 360 and rHandY < 720: self.nextMode = self.MENU
+            # Retake:
+            elif rHandY < 1080: self.nextMode = self.CAMERA
+            self.clearCamera()
             self.mode = self.nextMode
             self.lock[i] = True
             os.chdir(mainPath)
+
+    def saveImage(self):
+        screenshotCount = 0
+        for fileName in os.listdir("."):
+            if fileName.startswith("picture"):
+                if int(fileName[7:-4]) >= screenshotCount:
+                    screenshotCount = int(fileName[7:-4]) + 1
+            if fileName.startswith("screenshot"):
+                name = "picture%d.png" % (screenshotCount)
+                os.rename(fileName, name)
+
+    def clearCamera(self):
+        # Removes screenshot, tempScreenshot
+        os.remove("screenshot.png")
+        self.screenshot = None
+        self.tempScreenshot = None
 
     def updateCamera(self):
         if self.cameraStart == 0:
