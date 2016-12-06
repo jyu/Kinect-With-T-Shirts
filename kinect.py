@@ -65,6 +65,7 @@ class Game(object):
         self.trackedBodies = {}
 
     def initDesignVars(self):
+        self.numColors = 7
         # Gradients for different colors for design screen
         self.redGradient = [(255,31,82), (245,29,75), (236,27,68), (226,25,61),
                             (217,24,54), (207,22,48), (198,20,41), (188,19,34),
@@ -86,6 +87,7 @@ class Game(object):
         self.frontColor = [200, 0, 0]
         self.sidesColor = [43, 156, 54]
         self.sleevesColor = [61, 187, 198]
+        self.nextColor = [0,0,0]
         self.initGUILocks()
 
     def initGUIModes(self):
@@ -402,15 +404,15 @@ class Game(object):
 
     def checkDesignModes(self, rHandX,rHandY,lHandY,lHandX,i):
         if self.mode == self.DESIGNFRONT:
-            self.updateFront(rHandX,rHandY,lHandY,lHandX,i)
+            self.updatePart(rHandX,rHandY,lHandY,lHandX,i,"Front")
         elif self.mode == self.DESIGNFRONTMIX:
             self.updateMixFront(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNSIDES:
-            self.updateSides(rHandX,rHandY,lHandY,lHandX,i)
+            self.updatePart(rHandX,rHandY,lHandY,lHandX,i,"Sides")
         elif self.mode == self.DESIGNSIDESMIX:
             self.updateMixSides(rHandX,rHandY,lHandY,i)
         elif self.mode == self.DESIGNSLEEVES:
-            self.updateSleeves(rHandX,rHandY,lHandY,lHandX,i)
+            self.updatePart(rHandX,rHandY,lHandY,lHandX,i,"Sleeves")
         elif self.mode == self.DESIGNSLEEVESMIX:
             self.updateMixSleeves(rHandX,rHandY,lHandY,i)
 
@@ -528,6 +530,30 @@ class Game(object):
                 shape.colors[1] = tuple(self.frontColor)
                 shape.colors[2] = tuple(self.sleevesColor)
 
+    def updatePart(self, rHandX, rHandY, lHandY, lHandX, i, part):
+        step = self.screenHeight / self.numColors
+        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
+            if part = "Sleeves": self.mode = self.DESIGNSLEEVESMIX
+            elif part = "Sides": self.mode = self.DESIGNSIDESMIX
+            elif part = "Front": self.mode = self.DESIGNFRONTMIX
+        elif rHandX >= 1520:
+            if not self.lock[i]:
+                if rHandY <= step: self.nextColor = [237,28,36]
+                elif rHandY <= step*2: self.nextColor = [255,127,39]
+                elif rHandY <= step*3: self.nextColor = [255,242,0]
+                elif rHandY <= step*4: self.nextColor = [34,177,76]
+                elif rHandY <= step*5: self.nextColor = [0,162,232]
+                elif rHandY <= step*6: self.nextColor = [63,72,204]
+                elif rHandY <= step*7: self.nextColor = [163,73,164]
+            self.lock[i] = True
+            for shape in self.model.shapes:
+                if part = "Sleeves": shape.colors[2] = tuple(self.nextColor)
+                elif part = "Sides": shape.colors[0] = tuple(self.nextColor)
+                elif part = "Front": shape.colors[1] = tuple(self.nextColor)
+
+        if rHandX <= 1400:
+            self.lock[i] = False
+
     def updateSleeves(self, rHandX, rHandY, lHandY, lHandX, i):
         step = 154.4
         if lHandX < 200 and lHandY <= 366 and lHandY > 200:
@@ -601,7 +627,7 @@ class Game(object):
                     self.sleevesColor[0] += 20 * self.sign
                 elif rHandY > 360 and rHandY < 720:
                     self.sleevesColor[1] += 20 * self.sign
-                elif rHandY < 1080:
+                elif rHandY < self.screenHeight:
                     self.sleevesColor[2] += 20 * self.sign
             self.lock[i] = True
         if rHandX <= 1400:
