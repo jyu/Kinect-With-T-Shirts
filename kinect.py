@@ -40,7 +40,7 @@ class Game(object):
         self.initPics()
         self.initGUIVars()
         self.initDesignVars()
-        self.jointPoints = []
+        self.jointPoints = {}
 
     def initModels(self):
         # Models from 3D engine to render
@@ -165,7 +165,7 @@ class Game(object):
         self.shirtHeightConstant = 50
         self.shirtWidthConstant = 50
         self.modelAngle = 20
-        self.shLift = 40
+        self.shLift = -40
 
     def initBodyVar(self):
         # body variables
@@ -254,36 +254,35 @@ class Game(object):
     def data(self, joints, type, z=False):
         # Gets data from joints list
         ret = joints[getattr(PyKinectV2, "JointType_" + type)].Position
-        if z: return (ret.x,ret.y,ret.z)
+        if z: return (ret.x, ret.y, ret.z)
         return (ret.x, ret.y)
 
-    def dataJointTypes(self, type):
+    def dataJointTypes(self, jointPoints,type, i):
          # Gets data from joints list
-        ret = self.jointPoints[getattr(PyKinectV2, "JointType_" + type)]
-        return (ret.x, ret.y)
+        ret = jointPoints[getattr(PyKinectV2, "JointType_" + type)]
+        result = [ret.x,ret.y]
+        if abs(ret.x) > 10000: result[0] = 0
+        if abs(ret.y) > 10000: result[1] = 0
+        return tuple(result)
 
-    def getKScreenBody(self, i):
-        # print("HL",self.dataJointTypes("HipLeft"))
-        # print("HR",self.dataJointTypes("HipRight"))
-        # print("SL",self.dataJointTypes("ShoulderLeft"))
-        # print("SR",self.dataJointTypes("ShoulderRight"))
+    def getKScreenBody(self, i, jointPoints):
         (self.xLeftHip[i],
-        self.yLeftHip[i]) = self.dataJointTypes("HipLeft")
+        self.yLeftHip[i]) = self.dataJointTypes(jointPoints, "HipLeft", i)
         (self.xRightHip[i],
-        self.yRightHip[i]) = self.dataJointTypes("HipRight")
+        self.yRightHip[i]) = self.dataJointTypes(jointPoints,"HipRight", i)
         (self.xLeftShoulder[i],
-        self.yLeftShoulder[i]) = self.dataJointTypes("ShoulderLeft")
+        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderLeft", i)
         (self.xRightShoulder[i],
-        self.yRightShoulder[i]) = self.dataJointTypes("ShoulderRight")
+        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight", i)
 
         self.bodyX1[i] = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
         self.bodyX2[i] = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
         self.bodyY1[i] = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
-        self.bodyY2[i] = (self.yRightHip[i] + self.yLeftHip[i]) / 2
+        self.bodyY2[i] = (self.yRightHip[i] + self.yLeftHip[i]) / 2 - 50
 
-    def updateBody(self, joints, i):
+    def updateBody(self, joints, jointPoints, i):
         # Update body trackers
-        self.getKScreenBody(i)
+        self.getKScreenBody(i, jointPoints,)
         (self.xLeftHip[i],
         self.yLeftHip[i],
         self.zLeftHip[i]) = self.data(joints, "HipLeft", True)
@@ -300,9 +299,8 @@ class Game(object):
 
     def updateBodyVars(self, i):
         # Get XYZ movement calculations
-        self.getBodyParts(i)
         # Convert to screen
-        self.bodyZ = 430
+        self.bodyZ = 400
         (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight) = self.getBodyCoord(i)
         # Rotation calculations
         angleXZ = self.angleXZAdjustment * self.getAngleXZ(i)
@@ -314,18 +312,6 @@ class Game(object):
                                     self.leftArmAngle[i],
                                     self.rightArmAngle[i],
                                     self.bodyZ)
-
-    def getBodyParts(self, i):
-        # Gets 4 sides of the body
-        self.rightPart[i] = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
-        self.leftPart[i] = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
-        self.upPart[i] = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
-        self.downPart[i] = (self.yRightHip[i] + self.yLeftHip[i]) / 2
-
-    def getZAvg(self, i):
-        # Gets average z of the body
-        return (self.zRightShoulder[i] + self.zLeftShoulder[i]
-                + self.zRightHip[i] + self.zLeftHip[i]) / self.partsCount
 
     def getBodyCoord(self, i):
         bodyCenterX = ((self.bodyX1[i] + self.bodyX2[i]) / 2) - self.screenWidth / 2
@@ -339,7 +325,7 @@ class Game(object):
         # of difference in Z of shoulders. This function corrects it so standing
         # straight on an X shold give an angleXZ of 0
         # Got function from running cubic regression on data gathered by kinect
-        # Function for correcting:
+        # Function for  correcting:
         return -1 * (bodyX**3 * -4*10**-8 + bodyX**2 * 6*10**-6 -
                     bodyX * 0.0081)
 
@@ -350,19 +336,23 @@ class Game(object):
                           self.xRightShoulder[i] - self.xLeftShoulder[i])
                            * self.radToDeg)
 
-    def updateArms(self, joints, i):
+    def updateArms(self, joints, jointPoints, i):
         # Updates arm variables
-        self.xLeftElbow[i],self.yLeftElbow[i] = self.data(joints, "ElbowLeft")
-        self.xRightElbow[i],self.yRightElbow[i] = self.data(joints,"ElbowRight")
+        (self.xLeftShoulder[i],
+        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints, "ShoulderLeft", i)
+        (self.xRightShoulder[i],
+        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight", i)
+        self.xLeftElbow[i],self.yLeftElbow[i] = self.dataJointTypes(jointPoints,"ElbowLeft", i)
+        self.xRightElbow[i],self.yRightElbow[i] = self.dataJointTypes(jointPoints,"ElbowRight", i)
         self.updateLeftArm(i)
         self.updateRightArm(i)
 
     def updateLeftArm(self, i):
         # Left arm
-        xShould = self.sensorToScreenX(self.xLeftShoulder[i])
-        yShould = self.sensorToScreenY(self.yLeftShoulder[i])+self.shLift
-        xElb = self.sensorToScreenX(self.xLeftElbow[i])
-        yElb = self.sensorToScreenY(self.yLeftElbow[i])
+        xShould = self.xLeftShoulder[i]
+        yShould = self.yLeftShoulder[i] + self.shLift
+        xElb = self.xLeftElbow[i]
+        yElb = self.yLeftElbow[i]
         try:
             theta = math.atan((yShould - yElb)/(xElb - xShould))
         except:
@@ -377,10 +367,10 @@ class Game(object):
 
     def updateRightArm(self, i):
         # Right arm
-        xShould = self.sensorToScreenX(self.xRightShoulder[i])
-        yShould = self.sensorToScreenY(self.yRightShoulder[i])+self.shLift
-        xElb = self.sensorToScreenX(self.xRightElbow[i])
-        yElb = self.sensorToScreenY(self.yRightElbow[i])
+        xShould = self.xRightShoulder[i]
+        yShould = self.yRightShoulder[i] + self.shLift
+        xElb = self.xRightElbow[i]
+        yElb = self.yRightElbow[i]
         try:
             theta = -1 * math.atan((yShould - yElb)/(xElb - xShould))
         except:
@@ -473,9 +463,13 @@ class Game(object):
                 self.saveImage()
                 self.nextMode = self.MENU
             # Delete:
-            elif rHandY > 360 and rHandY < 720: self.nextMode = self.MENU
+            elif rHandY > 360 and rHandY < 720:
+                self.nextMode = self.MENU
+                os.remove("screenshot.png")
             # Retake:
-            elif rHandY < 1080: self.nextMode = self.CAMERA
+            elif rHandY < 1080:
+                self.nextMode = self.CAMERA
+                os.remove("screenshot.png")
             self.clearCamera()
             self.mode = self.nextMode
             self.lock[i] = True
@@ -493,7 +487,6 @@ class Game(object):
 
     def clearCamera(self):
         # Removes screenshot, tempScreenshot
-        os.remove("screenshot.png")
         self.screenshot = None
         self.tempScreenshot = None
 
@@ -579,7 +572,7 @@ class Game(object):
                 elif rHandY <= step*6: self.nextColor = [63,72,204]
                 elif rHandY <= step*7: self.nextColor = [163,73,164]
             self.lock[i] = True
-            self.applyNextColor()
+            self.applyNextColor(part)
         if rHandX <= 1400: self.lock[i] = False
 
     def updateMixPart(self, rHandX, rHandY, lHandY, i, part):
@@ -603,7 +596,7 @@ class Game(object):
         self.applyNextColorBounds()
         self.applyNextColor()
 
-    def applyNextColor(self):
+    def applyNextColor(self, part):
         for shape in self.model.shapes:
             if part == "Sleeves": shape.colors[2] = tuple(self.nextColor)
             elif part == "Sides": shape.colors[0] = tuple(self.nextColor)
@@ -717,10 +710,12 @@ class Game(object):
                     self.model.shapes.append(self.defaultBody)
                 # Updates each shirt iwth joint information
                 joints = body.joints
-                self.jointPoints = self.kinect.body_joints_to_color_space(joints)
-                self.updateArms(joints, self.trackedBodies[i][0])
+                # self.jointPoints[self.trackedBodies[i][0]] = self.kinect.body_joints_to_color_space(joints)
+                jointPoints = self.kinect.body_joints_to_color_space(joints)
+                print(self.trackedBodies)
+                self.updateArms(joints, jointPoints, self.trackedBodies[i][0])
                 self.updateHands(joints, self.trackedBodies[i][0])
-                self.updateBody(joints, self.trackedBodies[i][0])
+                self.updateBody(joints, jointPoints, self.trackedBodies[i][0])
         self.removeUntrackedBodies()
 
     def removeUntrackedBodies(self):
@@ -762,8 +757,8 @@ class Game(object):
             (self.screen.get_width(), target_height)
         )
         # Does homography on shirt
-        if surface_to_draw != None:
-            surface_to_draw = self.addCostume(surface_to_draw)
+        # if surface_to_draw != None:
+        #     surface_to_draw = self.addCostume(surface_to_draw)
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         # Blits GUI images onto image

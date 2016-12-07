@@ -156,7 +156,11 @@ class Cube(object):
             pygame.draw.polygon(
             self.surface,
             color,
+            pointList
             )
+
+    def update(self, *args):
+        pass
 
     def sortFacesByZ(self):
         # Sort the faces by their average Z value
@@ -275,7 +279,7 @@ class Camera(object):
         return np.dot(orig,rotMatrix)
 
 class shirt(object):
-    def __init__(self,x,y,z,surface,colors,xSide=100,ySide=200,zSide=100):
+    def __init__(self,x,y,z,surface,colors,xSide=100,ySide=200,zSide=50):
         self.surface = surface
         # Position of cube
         centerX = x
@@ -475,72 +479,68 @@ class shirt(object):
                               angleXZ,
                               "XZ"
                               )
-                # self.points[index].set(x, y, z, view)
-                # self.points[index].updateDrawCoord
-
                 self.points.append(Point(x, y, z, self.surface, view))
                 index += 1
 
     def updateLeftSleeve(self, xSide, ySide, leftAng, angleXZ, view):
         # Left Sleeve
-        XOperations, YOperations = [2.3,.5,.5,2.3], [-0.5,-0.5,-1,-1]
+        XOperations, YOperations = [2.1,.4,.4,2.1], [-0.6,-0.6,-1.1,-1.1]
         index = 6
-        for zOp in [.6,1.6]:
+        for zOp in [0.2,2]:
             for i in range(len(XOperations)):
+                if leftAng >= 0.3: XOperations = [2.1,.5,.5,2.1]
                 xOp, yOp = XOperations[i], YOperations[i]
-                x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
                 if leftAng > 0.8 and leftAng < 1.5: leftAng -= -1*(leftAng-1.5)*.07
+                x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
                 # Translate to shoulder to rotate and translate back
-                if leftAng >= 0: preX, preY = -30, 0
-                else: preX,preY = 0, -20
+                if leftAng >= 0.3: preX, preY = -30, 20
+                elif leftAng <= -.6: preX, preY = 0, 100*leftAng + 40
+                else: preX,preY = 0, 0
                 x, y = x - xSide + preX, y + ySide + preY
                 x, y, z = self.rotate(
                               x, y, z,
                               leftAng,
                               "XY"
                               )
-                x, y = x + xSide - 50, y - ySide
+                x, y = x + xSide - 30, y - ySide
                 x, y, z = self.rotate(
                               x, y, z,
                               angleXZ,
                               "XZ"
                               )
-                # self.points[index].set(x, y, z, view)
-                # self.points[index].updateDrawCoord
                 self.points.append(Point(x, y, z, self.surface, view))
-                # index += 1
+
     def updateRightSleeve(self, xSide, ySide, rightAng, angleXZ, view):
-            # Right Sleeve
-            index = 0
-            XOperations, YOperations = [-2.3,-.5,-.5,-2.3], [-0.5,-0.5,-1,-1]
-            for zOp in [.6,1.6]:
-                for i in range(len(XOperations)):
-                    xOp, yOp = XOperations[i], YOperations[i]
-                    x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
-                    if rightAng <= 0: preX, preY = 30, 0
-                    else: preX,preY = 0, -20
-                    x, y = x + xSide + preX, y + ySide + preY
-                    x, y, z = self.rotate(
-                                  x, y, z,
-                                   -rightAng,
-                                  "XY"
-                                  )
-                    # Lift torso side of sleeve
-                    if index in [1,2,5,6] and rightAng < 0:
-                        yLift = -30
-                    else: yLift = 0
-                    x, y = x - xSide + 50, y - ySide + 30 + yLift
-                    x, y, z = self.rotate(
-                                  x, y, z,
-                                  angleXZ,
-                                  "XZ"
-                                  )
-
-                    # self.points[index].set(x, y, z, view)
-                    # self.points[index].updateDrawCoord
-
-                    self.points.append(Point(x, y, z, self.surface, view))
-                    index += 1
+        # Right Sleeve
+        index = 0
+        XOperations, YOperations = [-2.1,-.4,-.4,-2.1], [-0.6,-0.6,-1.1,-1.1]
+        for zOp in [.2,2]:
+            for i in range(len(XOperations)):
+                if rightAng >= 0.3: XOperations = [-2.1,-.5,-.5,-2.1]
+                xOp, yOp = XOperations[i], YOperations[i]
+                x, y, z = xOp * xSide, yOp * ySide, zOp * self.zSide
+                # Translate to shoulder to rotate and translate back
+                if rightAng >= 0.3: preX, preY = 30, 20
+                elif rightAng <= -.6: preX, preY = 0, 100*rightAng + 40
+                else: preX,preY = 0, 0
+                x, y = x + xSide + preX, y + ySide + preY
+                x, y, z = self.rotate(
+                              x, y, z,
+                               -rightAng,
+                              "XY"
+                              )
+                # Lift torso side of sleeve
+                if index in [1,2,5,6] and rightAng > 0:
+                    yLift = -30
+                else: yLift = -30
+                x, y = x - xSide + 50, y - ySide + 30 + yLift
+                x, y, z = self.rotate(
+                              x, y, z,
+                              angleXZ,
+                              "XZ"
+                              )
+                self.points.append(Point(x, y, z, self.surface, view))
+                index += 1
 
     def updateTop(self, xSide, ySide, angleXZ, view):
         # Right Sleeve
@@ -627,6 +627,17 @@ class shirt(object):
             color,
             pointList
             )
+        face = self.faces[0]
+        pointList = []
+        for pointIndex in face:
+            point = self.points[pointIndex]
+            pointList.append((point.drawX, point.drawY))
+        color = self.colors[1]
+        pygame.draw.polygon(
+        self.surface,
+        color,
+        pointList
+        )
         face = self.faces[18]
         pointList = []
         for pointIndex in face:
@@ -638,6 +649,7 @@ class shirt(object):
         color,
         pointList
         )
+
 
     def getFrontFace(self):
         pointList = []
