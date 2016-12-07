@@ -192,7 +192,6 @@ class Game(object):
         # Preps body calculations
         self.partsCount = 4
         self.angleXZAdjustment = 3.8/5
-        self.zAdjustment = 600/1.5
         self.radToDeg = 180.0/math.pi
 
     def initArm(self):
@@ -217,10 +216,15 @@ class Game(object):
 
     def initBody(self):
         # Body Vars for calculations
-        self.rightPart, self.leftPart, self.upPart, self.downPart = 0, 0, 0, 0
-        self.bodyX1, self.bodyX2 = 0, 0
-        self.bodyY2, self.bodyY2 = 0, 0
-        self.bodyZ = 0
+        self.rightPart = [0,0,0,0,0,0]
+        self.leftPart = [0,0,0,0,0,0]
+        self.upPart = [0,0,0,0,0,0]
+        self.downPart = [0,0,0,0,0,0]
+        self.bodyX1 = [0,0,0,0,0,0]
+        self.bodyX2 = [0,0,0,0,0,0]
+        self.bodyY1 = [0,0,0,0,0,0]
+        self.bodyY2 = [0,0,0,0,0,0]
+        self.bodyZ = [0,0,0,0,0,0]
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -259,21 +263,27 @@ class Game(object):
         return (ret.x, ret.y)
 
     def getKScreenBody(self, i):
-        print("HL",self.dataJointTypes("HipLeft"))
-        print("HR",self.dataJointTypes("HipRight"))
-        print("SL",self.dataJointTypes("ShoulderLeft"))
-        print("SR",self.dataJointTypes("ShoulderRight"))
-        # (self.xLeftHip[i],
-        # self.yLeftHip[i]) = self.dataJointTypes("HipLeft")
-        # (self.xRightHip[i],
-        # self.yRightHip[i]) = self.dataJointTypes("HipRight")
-        # (self.xLeftShoulder[i],
-        # self.yLeftShoulder[i]) = self.dataJointTypes("ShoulderLeft")
-        # (self.xRightShoulder[i],
-        # self.yRightShoulder[i]) = self.dataJointTypes("ShoulderRight")
+        # print("HL",self.dataJointTypes("HipLeft"))
+        # print("HR",self.dataJointTypes("HipRight"))
+        # print("SL",self.dataJointTypes("ShoulderLeft"))
+        # print("SR",self.dataJointTypes("ShoulderRight"))
+        (self.xLeftHip[i],
+        self.yLeftHip[i]) = self.dataJointTypes("HipLeft")
+        (self.xRightHip[i],
+        self.yRightHip[i]) = self.dataJointTypes("HipRight")
+        (self.xLeftShoulder[i],
+        self.yLeftShoulder[i]) = self.dataJointTypes("ShoulderLeft")
+        (self.xRightShoulder[i],
+        self.yRightShoulder[i]) = self.dataJointTypes("ShoulderRight")
+
+        self.bodyX1[i] = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
+        self.bodyX2[i] = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
+        self.bodyY1[i] = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
+        self.bodyY2[i] = (self.yRightHip[i] + self.yLeftHip[i]) / 2
 
     def updateBody(self, joints, i):
         # Update body trackers
+        self.getKScreenBody(i)
         (self.xLeftHip[i],
         self.yLeftHip[i],
         self.zLeftHip[i]) = self.data(joints, "HipLeft", True)
@@ -286,21 +296,18 @@ class Game(object):
         (self.xRightShoulder[i],
         self.yRightShoulder[i],
         self.zRightShoulder[i]) = self.data(joints, "ShoulderRight", True)
-        #self.getKScreenBody(i)
         self.updateBodyVars(i)
 
     def updateBodyVars(self, i):
         # Get XYZ movement calculations
         self.getBodyParts(i)
-        zAvg = self.getZAvg(i)
         # Convert to screen
-        self.getPygameBodyCoords(i, zAvg)
-        (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight) = self.getBodyCoord()
+        self.bodyZ = 430
+        (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight) = self.getBodyCoord(i)
         # Rotation calculations
         angleXZ = self.angleXZAdjustment * self.getAngleXZ(i)
         angleXZ += self.angleCorrection(bodyCenterX)
         # Update body shape in model
-        print(bodyCenterX, bodyCenterY)
         self.model.shapes[i].update(bodyCenterX,bodyCenterY,
                                     bodyWidth,bodyHeight,
                                     angleXZ,
@@ -310,33 +317,22 @@ class Game(object):
 
     def getBodyParts(self, i):
         # Gets 4 sides of the body
-        self.rightPart = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
-        self.leftPart = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
-        self.upPart = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
-        self.downPart = (self.yRightHip[i] + self.yLeftHip[i]) / 2
+        self.rightPart[i] = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
+        self.leftPart[i] = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
+        self.upPart[i] = (self.yRightShoulder[i] + self.yLeftShoulder[i]) / 2
+        self.downPart[i] = (self.yRightHip[i] + self.yLeftHip[i]) / 2
 
     def getZAvg(self, i):
         # Gets average z of the body
         return (self.zRightShoulder[i] + self.zLeftShoulder[i]
                 + self.zRightHip[i] + self.zLeftHip[i]) / self.partsCount
 
-    def getBodyCoord(self):
-        bodyCenterX = ((self.bodyX1 + self.bodyX2) / 2) - self.screenWidth / 2
-        bodyCenterY = ((self.bodyY1 + self.bodyY2) / 2) - self.screenHeight / 2
-        bodyWidth = self.bodyX2 - self.bodyX1
-        bodyHeight = -1 * (self.bodyY1 - self.bodyY2)
+    def getBodyCoord(self, i):
+        bodyCenterX = ((self.bodyX1[i] + self.bodyX2[i]) / 2) - self.screenWidth / 2
+        bodyCenterY = ((self.bodyY1[i] + self.bodyY2[i]) / 2) - self.screenHeight / 2
+        bodyWidth = self.bodyX2[i] - self.bodyX1[i]
+        bodyHeight = -1 * (self.bodyY1[i] - self.bodyY2[i])
         return (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
-
-    def getPygameBodyCoords(self, i, zAvg):
-        # Converts sensor coords to pygame screen coords
-        self.bodyX1 = self.sensorToScreenX(self.rightPart) + self.shirtWidthConstant
-        self.bodyY1 = self.sensorToScreenY(self.upPart)
-        self.bodyX2 = self.sensorToScreenX(self.leftPart) - self.shirtWidthConstant
-        self.bodyY2 = self.sensorToScreenY(self.downPart) - self.shirtHeightConstant
-        print("Y1",self.bodyY1, "y2", self.bodyY2)
-        self.bodyZ = zAvg * self.zAdjustment
-        #self.bodyZ = 600
-        #print(zAvg)
 
     def angleCorrection(self, bodyX):
         # As person moves along the X, there is automatic angle added on because
