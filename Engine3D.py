@@ -192,8 +192,11 @@ class Model(object):
 
     def draw(self):
         # Draws all shapes
-        for shape in self.shapes:
-            shape.draw()
+        for i in range(len(self.shapes)):
+            self.shapes[i].draw()
+            print('drew', i, 'shape')
+        # for shape in self.shapes:
+        #     shape.draw()
 
 class Camera(object):
     # Camera controls our view of all the objects

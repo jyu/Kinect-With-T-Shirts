@@ -45,7 +45,7 @@ class Game(object):
 
     def initModels(self):
         # Models from 3D engine to render
-        self.model = Model(self.frameSurface, [Cube(0, 0, 0, 200, self.frameSurface)])
+        self.model = Model(self.frameSurface, [])
         self.closetModel = Model(self.frameSurface,[])
 
     def initGame(self):

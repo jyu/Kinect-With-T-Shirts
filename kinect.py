@@ -40,7 +40,6 @@ class Game(object):
         self.initPics()
         self.initGUIVars()
         self.initDesignVars()
-        self.jointPoints = {}
 
     def initModels(self):
         # Models from 3D engine to render
@@ -282,7 +281,7 @@ class Game(object):
 
     def updateBody(self, joints, jointPoints, i):
         # Update body trackers
-        self.getKScreenBody(i, jointPoints,)
+        self.getKScreenBody(i, jointPoints)
         (self.xLeftHip[i],
         self.yLeftHip[i],
         self.zLeftHip[i]) = self.data(joints, "HipLeft", True)
@@ -312,6 +311,9 @@ class Game(object):
                                     self.leftArmAngle[i],
                                     self.rightArmAngle[i],
                                     self.bodyZ)
+        self.model.shapes[i].draw()
+        print('updated', i, 'body')
+        print(bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
 
     def getBodyCoord(self, i):
         bodyCenterX = ((self.bodyX1[i] + self.bodyX2[i]) / 2) - self.screenWidth / 2
@@ -711,7 +713,7 @@ class Game(object):
                 # Updates each shirt iwth joint information
                 joints = body.joints
                 # self.jointPoints[self.trackedBodies[i][0]] = self.kinect.body_joints_to_color_space(joints)
-                jointPoints = self.kinect.body_joints_to_color_space(joints)
+                jointPoints = self.kinect.body_joints_to_color_space(body.joints)
                 print(self.trackedBodies)
                 self.updateArms(joints, jointPoints, self.trackedBodies[i][0])
                 self.updateHands(joints, self.trackedBodies[i][0])
@@ -757,8 +759,8 @@ class Game(object):
             (self.screen.get_width(), target_height)
         )
         # Does homography on shirt
-        # if surface_to_draw != None:
-        #     surface_to_draw = self.addCostume(surface_to_draw)
+        if surface_to_draw != None:
+             surface_to_draw = self.addCostume(surface_to_draw)
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         # Blits GUI images onto image
