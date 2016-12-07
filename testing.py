@@ -49,7 +49,6 @@ class Game(object):
         self.model = Model(
                         self.frameSurface,
                         [
-                        Cube(0, 0, 0, 200, self.frameSurface)
                         ])
         self.closetModel = Model(
                                 self.frameSurface,
@@ -724,7 +723,6 @@ class Game(object):
                     self.trackedBodies[i][1] = True
                 else:
                     prevLen = len(self.trackedBodies)
-                    prevLen = max(1,prevLen)
                     self.trackedBodies[i] = [prevLen, True]
                     self.model.shapes.append(
                         shirt(0, 0, 0, self.frameSurface,

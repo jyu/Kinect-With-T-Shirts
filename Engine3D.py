@@ -194,7 +194,6 @@ class Model(object):
         # Draws all shapes
         for i in range(len(self.shapes)):
             self.shapes[i].draw()
-            print('drew', i, 'shape')
         # for shape in self.shapes:
         #     shape.draw()
 

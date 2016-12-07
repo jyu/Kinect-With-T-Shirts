@@ -171,8 +171,8 @@ class Game(object):
         self.initShoulderHip()
         self.initArm()
         self.initBody()
-        self.defaultBody = (shirt(0, 0, 0, self.frameSurface,
-                        [(43, 156, 54),(200,0,0),(61, 187, 198)]))
+        # self.defaultBody = (shirt(0, 0, 0, self.frameSurface,
+        #                 [(43, 156, 54),(200,0,0),(61, 187, 198)]))
 
     def initShoulderHip(self):
         # Shoulder and hip joints for each person
@@ -189,8 +189,8 @@ class Game(object):
         self.yRightHip = [0,0,0,0,0,0]
         self.zRightHip = [0,0,0,0,0,0]
         # Preps body calculations
-        self.partsCount = 4
-        self.angleXZAdjustment = 3.8/5
+        self.partsCount = 3.8/5
+        self.angleXZAdjustment = 1
         self.radToDeg = 180.0/math.pi
 
     def initArm(self):
@@ -224,6 +224,8 @@ class Game(object):
         self.bodyY1 = [0,0,0,0,0,0]
         self.bodyY2 = [0,0,0,0,0,0]
         self.bodyZ = [0,0,0,0,0,0]
+        self.lHandX, self.lHandY = [0,0,0,0,0,0], [0,0,0,0,0,0]
+        self.rHandX, self.rHandY = [0,0,0,0,0,0], [0,0,0,0,0,0]
 
     # Function from Kinect Workshop
     def drawColorFrame(self, frame, target_surface):
@@ -311,9 +313,9 @@ class Game(object):
                                     self.leftArmAngle[i],
                                     self.rightArmAngle[i],
                                     self.bodyZ)
-        self.model.shapes[i].draw()
-        print('updated', i, 'body')
-        print(bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
+        # self.model.shapes[i].draw()
+        #print('updated', i, 'body')
+        #print(bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
 
     def getBodyCoord(self, i):
         bodyCenterX = ((self.bodyX1[i] + self.bodyX2[i]) / 2) - self.screenWidth / 2
@@ -385,9 +387,11 @@ class Game(object):
             theta = math.pi/2
         self.rightArmAngle[i] = theta
 
-    def updateHands(self, joints, i):
+    def updateHands(self, joints, jointPoints, i):
         self.xRightHand[i], self.yRightHand[i] = self.data(joints, "HandRight")
         self.xLeftHand[i], self.yLeftHand[i] = self.data(joints, "HandLeft")
+        self.rHandX[i], self.rHandY[i] = self.dataJointTypes(jointPoints, "HandRight", i)
+        self.lHandX[i], self.lHandY[i] = self.dataJointTypes(jointPoints, "HandLeft", i)
 
     def updateAllGUI(self):
         for body in self.trackedBodies:
@@ -395,10 +399,12 @@ class Game(object):
             self.updateGUI(i)
 
     def updateGUI(self, i):
-        rHandX = self.sensorToScreenX(self.xRightHand[i])
-        rHandY = self.sensorToScreenY(self.yRightHand[i])
-        lHandX = self.sensorToScreenX(self.xLeftHand[i])
-        lHandY = self.sensorToScreenY(self.yLeftHand[i])
+        rHandX = self.rHandX[i]
+        rHandY = self.rHandY[i]
+        lHandX = self.lHandX[i]
+        lHandY = self.lHandY[i]
+        print(rHandY)
+
         # Exit Button
         if lHandX < 200 and lHandY < 200:
             self.done = True
@@ -532,7 +538,7 @@ class Game(object):
             elif rHandY < 1080:
                 self.nextColors = self.closetColors[2]
         # Change Colors
-        if rHandY < 30 and lHandY < 30:
+        if rHandY < 50 and lHandY < 50:
             for shape in self.model.shapes:
                 shape.colors = self.nextColors
 
@@ -542,10 +548,14 @@ class Game(object):
             self.lock[i] = True
             if rHandY <= 360:
                 self.nextMode = self.DESIGNFRONT
+                self.nextColor = self.frontColor
             elif rHandY > 360 and rHandY < 720:
                 self.nextMode = self.DESIGNSIDES
+                self.nextColor = self.sidesColor
             elif rHandY < 1080:
                 self.nextMode = self.DESIGNSLEEVES
+                self.nextColor = self.sleevesColor
+
             self.mode = self.nextMode
             self.lock[i] = True
 
@@ -560,8 +570,9 @@ class Game(object):
 
     def updatePart(self, rHandX, rHandY, lHandY, lHandX, i, part):
         step = self.screenHeight / self.numColors
+        print(lHandY)
         if lHandX < 200 and lHandY <= 366 and lHandY > 200:
-            if part == "Sleeves": self.mode = self.DESIGNSLEEVESMIX
+            if part == "Sleeves":self.mode = self.DESIGNSLEEVESMIX
             elif part == "Sides": self.mode = self.DESIGNSIDESMIX
             elif part == "Front": self.mode = self.DESIGNFRONTMIX
         elif rHandX >= 1520:
@@ -596,13 +607,19 @@ class Game(object):
             self.lock[i] = True
         if rHandX <= 1400: self.lock[i] = False
         self.applyNextColorBounds()
-        self.applyNextColor()
+        self.applyNextColor(part)
 
     def applyNextColor(self, part):
         for shape in self.model.shapes:
-            if part == "Sleeves": shape.colors[2] = tuple(self.nextColor)
-            elif part == "Sides": shape.colors[0] = tuple(self.nextColor)
-            elif part == "Front": shape.colors[1] = tuple(self.nextColor)
+            if part == "Sleeves":
+                shape.colors[2] = tuple(self.nextColor)
+                self.sleevesColor = tuple(self.nextColor)
+            elif part == "Sides":
+                shape.colors[0] = tuple(self.nextColor)
+                self.sidesColor = tuple(self.nextColor)
+            elif part == "Front":
+                shape.colors[1] = tuple(self.nextColor)
+                self.frontColor = tuple(self.nextColor)
 
     def applyNextColorBounds(self):
         self.nextColor[0] = min(255, self.nextColor[0])
@@ -709,14 +726,15 @@ class Game(object):
                     # Adds a new body to model
                     prevLen = len(self.trackedBodies)
                     self.trackedBodies[i] = [prevLen, True]
-                    self.model.shapes.append(self.defaultBody)
+                    self.model.shapes.append(
+                        shirt(0, 0, 0, self.frameSurface,
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)]))
                 # Updates each shirt iwth joint information
                 joints = body.joints
                 # self.jointPoints[self.trackedBodies[i][0]] = self.kinect.body_joints_to_color_space(joints)
                 jointPoints = self.kinect.body_joints_to_color_space(body.joints)
-                print(self.trackedBodies)
                 self.updateArms(joints, jointPoints, self.trackedBodies[i][0])
-                self.updateHands(joints, self.trackedBodies[i][0])
+                self.updateHands(joints, jointPoints, self.trackedBodies[i][0])
                 self.updateBody(joints, jointPoints, self.trackedBodies[i][0])
         self.removeUntrackedBodies()
 
@@ -742,6 +760,7 @@ class Game(object):
     def drawAll(self):
         # Calls all draw functions on the surface
         self.model.draw()
+        # call model draw in the shapes when updating
         self.closetModel.draw()
         self.updateAllGUI()
         self.drawGUI()
@@ -759,8 +778,8 @@ class Game(object):
             (self.screen.get_width(), target_height)
         )
         # Does homography on shirt
-        if surface_to_draw != None:
-             surface_to_draw = self.addCostume(surface_to_draw)
+        # if surface_to_draw != None:
+        #      surface_to_draw = self.addCostume(surface_to_draw)
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         # Blits GUI images onto image
@@ -772,10 +791,13 @@ class Game(object):
         # Get pygame screen and convert to BGR for opencv
         source = cv2.cvtColor(self.pygame_to_cvimage(image), cv2.COLOR_RGB2BGR)
         # Search through all bodies
+        index = 0
         if len(self.model.shapes) > 0:
             for shirt in self.model.shapes:
+                #print(index, "is doing cv")
                 # Get pointlist of front of the shirt
                 pointList = shirt.getFrontFace()
+                #print(pointList, "points of ", index)
                 pointList = np.array([list(pointList[0]),
                                      list(pointList[1]),
                                      list(pointList[2]),
@@ -786,6 +808,7 @@ class Game(object):
                     point = pointList[i]
                     pointList[i] = [point[0]/2, point[1]/2]
                 source = self.warp(pointList, source)
+                index += 1
 
         result = np.transpose(source,(1,0,2))
         image = self.cvimage_to_pygame(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
