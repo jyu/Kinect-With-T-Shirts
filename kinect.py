@@ -242,7 +242,7 @@ class Game(object):
         # Converts sensor coordinate Y to screen coordinates
         screenY = (
             -1 *
- -           (sensorPosY - self.sensorScreenHeight / 2) *
+            (sensorPosY - self.sensorScreenHeight / 2) *
             (self.screenHeight / self.sensorScreenHeight)
         )
         return screenY
@@ -252,6 +252,25 @@ class Game(object):
         ret = joints[getattr(PyKinectV2, "JointType_" + type)].Position
         if z: return (ret.x,ret.y,ret.z)
         return (ret.x, ret.y)
+
+    def dataJointTypes(self, type):
+         # Gets data from joints list
+        ret = self.jointPoints[getattr(PyKinectV2, "JointType_" + type)]
+        return (ret.x, ret.y)
+
+    def getKScreenBody(self, i):
+        print("HL",self.dataJointTypes("HipLeft"))
+        print("HR",self.dataJointTypes("HipRight"))
+        print("SL",self.dataJointTypes("ShoulderLeft"))
+        print("SR",self.dataJointTypes("ShoulderRight"))
+        # (self.xLeftHip[i],
+        # self.yLeftHip[i]) = self.dataJointTypes("HipLeft")
+        # (self.xRightHip[i],
+        # self.yRightHip[i]) = self.dataJointTypes("HipRight")
+        # (self.xLeftShoulder[i],
+        # self.yLeftShoulder[i]) = self.dataJointTypes("ShoulderLeft")
+        # (self.xRightShoulder[i],
+        # self.yRightShoulder[i]) = self.dataJointTypes("ShoulderRight")
 
     def updateBody(self, joints, i):
         # Update body trackers
@@ -267,6 +286,7 @@ class Game(object):
         (self.xRightShoulder[i],
         self.yRightShoulder[i],
         self.zRightShoulder[i]) = self.data(joints, "ShoulderRight", True)
+        #self.getKScreenBody(i)
         self.updateBodyVars(i)
 
     def updateBodyVars(self, i):
@@ -274,18 +294,19 @@ class Game(object):
         self.getBodyParts(i)
         zAvg = self.getZAvg(i)
         # Convert to screen
-        self.getPygameBodyCoords(i)
-        (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight) = self.getBodyCoord(i)
+        self.getPygameBodyCoords(i, zAvg)
+        (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight) = self.getBodyCoord()
         # Rotation calculations
         angleXZ = self.angleXZAdjustment * self.getAngleXZ(i)
         angleXZ += self.angleCorrection(bodyCenterX)
         # Update body shape in model
+        print(bodyCenterX, bodyCenterY)
         self.model.shapes[i].update(bodyCenterX,bodyCenterY,
                                     bodyWidth,bodyHeight,
                                     angleXZ,
                                     self.leftArmAngle[i],
                                     self.rightArmAngle[i],
-                                    bodyZ)
+                                    self.bodyZ)
 
     def getBodyParts(self, i):
         # Gets 4 sides of the body
@@ -306,12 +327,13 @@ class Game(object):
         bodyHeight = -1 * (self.bodyY1 - self.bodyY2)
         return (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
 
-    def getPygameBodyCoords(self, i):
+    def getPygameBodyCoords(self, i, zAvg):
         # Converts sensor coords to pygame screen coords
-        self.bodyX1 = self.sensorToScreenX(rightPart) + self.shirtWidthConstant
-        self.bodyY1 = self.sensorToScreenY(upPart)
-        self.bodyX2 = self.sensorToScreenX(leftPart) - self.shirtWidthConstant
-        self.bodyY2 = self.sensorToScreenY(downPart) - self.shirtHeightConstant
+        self.bodyX1 = self.sensorToScreenX(self.rightPart) + self.shirtWidthConstant
+        self.bodyY1 = self.sensorToScreenY(self.upPart)
+        self.bodyX2 = self.sensorToScreenX(self.leftPart) - self.shirtWidthConstant
+        self.bodyY2 = self.sensorToScreenY(self.downPart) - self.shirtHeightConstant
+        print("Y1",self.bodyY1, "y2", self.bodyY2)
         self.bodyZ = zAvg * self.zAdjustment
         #self.bodyZ = 600
         #print(zAvg)
