@@ -92,6 +92,7 @@ class Game(object):
         self.initCloset()
 
     def initCloset(self):
+        self.closCostume = None
         self.addCloset = (
                     [
                     shirt(800, -400, 0, self.frameSurface,
@@ -125,12 +126,13 @@ class Game(object):
         self.DESIGNFRONTMIX = 10
         self.DESIGNSIDESMIX = 11
         self.DESIGNSLEEVESMIX = 12
+        self.COSTUMECLOSET = 13
         self.initHelpModes()
 
     def initHelpModes(self):
-        self.HELPMENU = 13
-        self.HELPCLOSET = 14
-        self.HELPDESIGN = 15
+        self.HELPMENU = 14
+        self.HELPCLOSET = 15
+        self.HELPDESIGN = 16
         self.preHelp = 0
 
     def initGUILocks(self):
@@ -140,6 +142,8 @@ class Game(object):
         self.sign = 1
         self.flipLock = [False, False, False, False, False, False]
         self.designLock = [True, True, True, True, True, True]
+        self.menuLock = [False, False, False, False, False, False]
+        self.closetLock = [False, False, False, False, False, False]
         self.cameraStart = 0
         self.cameraTimer = 3000
 
@@ -155,12 +159,17 @@ class Game(object):
         self.cameraDone = pygame.image.load("cameradone.png")
         self.designColors = pygame.image.load("designcolors.png")
         self.mix = pygame.image.load("mix.png")
-        self.frontImage = cv2.imread("ironManFront.png")
+        self.initCostumePics()
         self.initHelpPics()
         self.frontImagePoints = np.array([[0,0],[152,0],[152,255],[0,255]])
         os.chdir(mainPath)
         self.screenshot = None
         self.tempScreenShot = None
+
+    def initCostumePics(self):
+        self.costume = pygame.image.load("costume.png")
+        self.backCloset = pygame.image.load("back.png")
+        self.frontImage = cv2.imread("ironManFront.png")
 
     def initHelpPics(self):
         self.help = pygame.image.load("help.png")
@@ -379,6 +388,7 @@ class Game(object):
         if theta <= 0 and theta >= self.downSwingAng:
             self.leftDownSwing[i] = False
         elif theta >= 0: self.leftDownSwing[i] = True
+
         if theta < self.downSwingAng and self.leftDownSwing[i]:
             theta = math.pi/2
         self.leftArmAngle[i] = theta
@@ -418,29 +428,33 @@ class Game(object):
         lHandX = self.lHandX[i]
         lHandY = self.lHandY[i]
 
+        # Back to menu, gesture
+        if (abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and
+                rHandY > 30) and not self.menuLock[i]:
+            self.menuLock[i] = True
+            self.backToMenu()
+        if (abs(lHandX-rHandX) > 20 and abs(lHandY-rHandY) > 20):
+            self.menuLock[i] = False
+        if self.mode == self.FULLSCREEN or self.mode > 13: return
         # Help Button
         if lHandX < 200 and lHandY <= 366 and lHandY > 200:
             if self.mode == self.CLOSET: self.mode = self.HELPCLOSET
             if self.mode == self.MENU: self.mode = self.HELPMENU
             if self.mode == self.DESIGN or self.mode in range(7,13):
                 self.preHelp = self.mode
+                print(self.preHelp)
                 self.mode = self.HELPDESIGN
-
         # Exit Button
-        if lHandX < 200 and lHandY < 200:
+        if lHandX < 200 and lHandY < 200 and lHandX > 0 and lHandY > 0:
             self.done = True
         # Fullscreen Button
-        elif lHandX < 200 and lHandY > 880:
+        elif lHandX < 400 and lHandY > 880:
             if self.mode == self.CLOSET:
                 self.closetModel.shapes.pop()
                 self.closetModel.shapes.pop()
                 self.closetModel.shapes.pop()
             self.mode = self.FULLSCREEN
 
-        # Back to menu, gesture
-        elif (abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and
-                rHandY > 30):
-            self.backToMenu()
         self.updateModes(rHandX, rHandY, lHandY, lHandX, i)
 
     def backToMenu(self):
@@ -453,17 +467,25 @@ class Game(object):
         elif self.mode == self.CAMERADONE:
             self.screenshot = None
             self.tempScreenshot = None
-        self.mode = self.MENU
-        if self.mode == self.HELPCLOSET: self.mode = self.CLOSET
-        if self.mode == self.DESIGNCLOSET: self.mode = self.preHelp
+        nextMode = self.MENU
+        if self.mode == self.HELPCLOSET: nextMode = self.CLOSET
+        if self.mode == self.HELPDESIGN:
+            nextMode = self.preHelp
+            print('going to', nextMode)
+        self.mode = nextMode
 
     def updateModes(self, rHandX, rHandY, lHandY, lHandX, i):
         # Update all modes
         if self.mode == self.MENU: self.updateMenu(rHandX,rHandY,i)
-        elif self.mode == self.CLOSET: self.updateCloset(rHandX, rHandY, lHandY)
+        elif self.mode == self.CLOSET:
+            self.updateCloset(rHandX, rHandY, lHandY, lHandX, i)
         elif self.mode == self.CAMERA: self.updateCamera()
-        elif self.mode == self.CAMERADONE: self.updateCameraDone(rHandX,rHandY,lHandY,i)
-        elif self.mode == self.DESIGN: self.updateDesign(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.CAMERADONE:
+            self.updateCameraDone(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.DESIGN:
+            self.updateDesign(rHandX,rHandY,lHandY,i)
+        elif self.mode == self.COSTUMECLOSET:
+            self.updateCosCloset(rHandX, rHandY, lHandY, lHandX, i)
         else: self.checkDesignModes(rHandX,rHandY,lHandY,lHandX,i)
 
     def checkDesignModes(self, rHandX,rHandY,lHandY,lHandX,i):
@@ -552,7 +574,35 @@ class Game(object):
             elif rHandY > 360 and rHandY < 720: self.mode = self.DESIGN
             elif rHandY < 1080: self.mode = self.CAMERA
 
-    def updateCloset(self,rHandX,rHandY,lHandY):
+    def updateCosCloset(self,rHandX,rHandY,lHandY,lHandX, i):
+        if lHandX > 200: self.closetLock[i] = False
+        # Costumes mode
+        if lHandX < 200 and lHandY <= 532 and lHandY > 366 and not self.closetLock[i]:
+            self.closetLock[i] = True
+            self.closetModel.shapes.extend(self.addCloset)
+            self.mode = self.CLOSET
+        # Right Panel
+        if rHandX >= 1520:
+            if rHandY <= 360:
+                self.nextColors = self.closetColors[0]
+            elif rHandY > 360 and rHandY < 720:
+                self.nextColors = self.closetColors[1]
+            elif rHandY < 1080:
+                self.nextColors = self.closetColors[2]
+        # Change Colors
+        if rHandY < 50 and lHandY < 50:
+            for shape in self.model.shapes:
+                shape.colors = self.nextColors
+
+    def updateCloset(self,rHandX,rHandY,lHandY,lHandX,i):
+        # Costumes mode
+        if lHandX > 200: self.closetLock[i] = False
+        if lHandX < 200 and lHandY <= 532 and lHandY > 366 and not self.closetLock[i]:
+            self.closetLock[i] = True
+            self.closetModel.shapes.pop()
+            self.closetModel.shapes.pop()
+            self.closetModel.shapes.pop()
+            self.mode = self.COSTUMECLOSET
         # Right Panel
         if rHandX >= 1520:
             if rHandY <= 360:
@@ -572,13 +622,13 @@ class Game(object):
             self.lock[i] = True
             if rHandY <= 360:
                 self.nextMode = self.DESIGNFRONT
-                self.nextColor = self.model.shapes[i].colors[1]
+                self.nextColor = list(self.model.shapes[i].colors[1])
             elif rHandY > 360 and rHandY < 720:
                 self.nextMode = self.DESIGNSIDES
-                self.nextColor = self.model.shapes[i].colors[0]
+                self.nextColor = list(self.model.shapes[i].colors[0])
             elif rHandY < 1080:
                 self.nextMode = self.DESIGNSLEEVES
-                self.nextColor = self.model.shapes[i].colors[2]
+                self.nextColor = list(self.model.shapes[i].colors[2])
 
             self.mode = self.nextMode
             self.lock[i] = True
@@ -613,7 +663,7 @@ class Game(object):
 
     def updateMixPart(self, rHandX, rHandY, lHandY, i, part):
         # Flip sign gesture
-        if (abs(rHandY-lHandY) >= 900 and not self.flipLock[i]
+        if (abs(rHandY-lHandY) >= 700 and not self.flipLock[i]
             and rHandX < 1520):
             self.sign *= -1
             self.flipLock[i] = True
@@ -737,12 +787,15 @@ class Game(object):
         elif self.mode in [self.DESIGNFRONT,self.DESIGNSIDES,self.DESIGNSLEEVES]:
             self.screen.blit(self.mix, (0,183))
             self.screen.blit(self.designColors, (810,0))
-        elif self.mode == self.HELPMENU:
-            self.screen.blit(self.helpMenu, (0,0))
+        elif self.mode == self.HELPMENU: self.screen.blit(self.helpMenu, (0,0))
         elif self.mode == self.HELPDESIGN:
             self.screen.blit(self.helpDesign, (0,0))
         elif self.mode == self.HELPCLOSET:
             self.screen.blit(self.helpCloset, (0,0))
+        elif self.mode == self.CLOSET:
+            self.screen.blit(self.costume, (0,183))
+        elif self.mode == self.COSTUMECLOSET:
+            self.screen.blit(self.backCloset, (0,183))
 
     def updateBodies(self):
         # Goes through each body detected by kinect
