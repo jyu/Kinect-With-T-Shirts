@@ -548,13 +548,13 @@ class Game(object):
             self.lock[i] = True
             if rHandY <= 360:
                 self.nextMode = self.DESIGNFRONT
-                self.nextColor = self.frontColor
+                self.nextColor = self.model.shapes[i].colors[1]
             elif rHandY > 360 and rHandY < 720:
                 self.nextMode = self.DESIGNSIDES
-                self.nextColor = self.sidesColor
+                self.nextColor = self.model.shapes[i].colors[0]
             elif rHandY < 1080:
                 self.nextMode = self.DESIGNSLEEVES
-                self.nextColor = self.sleevesColor
+                self.nextColor = self.model.shapes[i].colors[2]
 
             self.mode = self.nextMode
             self.lock[i] = True
