@@ -117,14 +117,21 @@ class Game(object):
         self.CLOSET = 2
         self.DESIGN = 3
         self.CAMERA = 4
-        self.DESIGNFRONT = 5
-        self.DESIGNSIDES = 6
-        self.DESIGNSLEEVES = 7
-        self.FULLSCREEN = 8
-        self.CAMERADONE = 9
+        self.FULLSCREEN = 5
+        self.CAMERADONE = 6
+        self.DESIGNFRONT = 7
+        self.DESIGNSIDES = 8
+        self.DESIGNSLEEVES = 9
         self.DESIGNFRONTMIX = 10
         self.DESIGNSIDESMIX = 11
         self.DESIGNSLEEVESMIX = 12
+        self.initHelpModes()
+
+    def initHelpModes(self):
+        self.HELPMENU = 13
+        self.HELPCLOSET = 14
+        self.HELPDESIGN = 15
+        self.preHelp = 0
 
     def initGUILocks(self):
         # Controls gui to make sure screens arent selected multiple times
@@ -149,10 +156,17 @@ class Game(object):
         self.designColors = pygame.image.load("designcolors.png")
         self.mix = pygame.image.load("mix.png")
         self.frontImage = cv2.imread("ironManFront.png")
+        self.initHelpPics()
         self.frontImagePoints = np.array([[0,0],[152,0],[152,255],[0,255]])
         os.chdir(mainPath)
         self.screenshot = None
         self.tempScreenShot = None
+
+    def initHelpPics(self):
+        self.help = pygame.image.load("help.png")
+        self.helpCloset = pygame.image.load("closetHelpScreen.png")
+        self.helpDesign = pygame.image.load("designHelpScreen.png")
+        self.helpMenu = pygame.image.load("menuHelpScreen.png")
 
     def initScreenVar(self):
         # Screen variables
@@ -258,7 +272,7 @@ class Game(object):
         if z: return (ret.x, ret.y, ret.z)
         return (ret.x, ret.y)
 
-    def dataJointTypes(self, jointPoints,type, i):
+    def dataJointTypes(self, jointPoints,type):
          # Gets data from joints list
         ret = jointPoints[getattr(PyKinectV2, "JointType_" + type)]
         result = [ret.x,ret.y]
@@ -268,13 +282,13 @@ class Game(object):
 
     def getKScreenBody(self, i, jointPoints):
         (self.xLeftHip[i],
-        self.yLeftHip[i]) = self.dataJointTypes(jointPoints, "HipLeft", i)
+        self.yLeftHip[i]) = self.dataJointTypes(jointPoints, "HipLeft")
         (self.xRightHip[i],
-        self.yRightHip[i]) = self.dataJointTypes(jointPoints,"HipRight", i)
+        self.yRightHip[i]) = self.dataJointTypes(jointPoints,"HipRight")
         (self.xLeftShoulder[i],
-        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderLeft", i)
+        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderLeft")
         (self.xRightShoulder[i],
-        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight", i)
+        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight")
 
         self.bodyX1[i] = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
         self.bodyX2[i] = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
@@ -343,11 +357,11 @@ class Game(object):
     def updateArms(self, joints, jointPoints, i):
         # Updates arm variables
         (self.xLeftShoulder[i],
-        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints, "ShoulderLeft", i)
+        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints, "ShoulderLeft")
         (self.xRightShoulder[i],
-        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight", i)
-        self.xLeftElbow[i],self.yLeftElbow[i] = self.dataJointTypes(jointPoints,"ElbowLeft", i)
-        self.xRightElbow[i],self.yRightElbow[i] = self.dataJointTypes(jointPoints,"ElbowRight", i)
+        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight")
+        self.xLeftElbow[i],self.yLeftElbow[i] = self.dataJointTypes(jointPoints,"ElbowLeft")
+        self.xRightElbow[i],self.yRightElbow[i] = self.dataJointTypes(jointPoints,"ElbowRight")
         self.updateLeftArm(i)
         self.updateRightArm(i)
 
@@ -390,8 +404,8 @@ class Game(object):
     def updateHands(self, joints, jointPoints, i):
         self.xRightHand[i], self.yRightHand[i] = self.data(joints, "HandRight")
         self.xLeftHand[i], self.yLeftHand[i] = self.data(joints, "HandLeft")
-        self.rHandX[i], self.rHandY[i] = self.dataJointTypes(jointPoints, "HandRight", i)
-        self.lHandX[i], self.lHandY[i] = self.dataJointTypes(jointPoints, "HandLeft", i)
+        self.rHandX[i], self.rHandY[i] = self.dataJointTypes(jointPoints, "HandRight")
+        self.lHandX[i], self.lHandY[i] = self.dataJointTypes(jointPoints, "HandLeft")
 
     def updateAllGUI(self):
         for body in self.trackedBodies:
@@ -403,18 +417,26 @@ class Game(object):
         rHandY = self.rHandY[i]
         lHandX = self.lHandX[i]
         lHandY = self.lHandY[i]
-        print(rHandY)
+
+        # Help Button
+        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
+            if self.mode == self.CLOSET: self.mode = self.HELPCLOSET
+            if self.mode == self.MENU: self.mode = self.HELPMENU
+            if self.mode == self.DESIGN or self.mode in range(7,13):
+                self.preHelp = self.mode
+                self.mode = self.HELPDESIGN
 
         # Exit Button
         if lHandX < 200 and lHandY < 200:
             self.done = True
         # Fullscreen Button
-        elif lHandX < 400 and lHandY > 880:
+        elif lHandX < 200 and lHandY > 880:
             if self.mode == self.CLOSET:
                 self.closetModel.shapes.pop()
                 self.closetModel.shapes.pop()
                 self.closetModel.shapes.pop()
             self.mode = self.FULLSCREEN
+
         # Back to menu, gesture
         elif (abs(lHandX-rHandX) <= 20 and abs(lHandY-rHandY) <= 20 and
                 rHandY > 30):
@@ -432,6 +454,8 @@ class Game(object):
             self.screenshot = None
             self.tempScreenshot = None
         self.mode = self.MENU
+        if self.mode == self.HELPCLOSET: self.mode = self.CLOSET
+        if self.mode == self.DESIGNCLOSET: self.mode = self.preHelp
 
     def updateModes(self, rHandX, rHandY, lHandY, lHandX, i):
         # Update all modes
@@ -570,8 +594,7 @@ class Game(object):
 
     def updatePart(self, rHandX, rHandY, lHandY, lHandX, i, part):
         step = self.screenHeight / self.numColors
-        print(lHandY)
-        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
+        if lHandX < 200 and lHandY <= 532 and lHandY > 366:
             if part == "Sleeves":self.mode = self.DESIGNSLEEVESMIX
             elif part == "Sides": self.mode = self.DESIGNSIDESMIX
             elif part == "Front": self.mode = self.DESIGNFRONTMIX
@@ -586,7 +609,7 @@ class Game(object):
                 elif rHandY <= step*7: self.nextColor = [163,73,164]
             self.lock[i] = True
             self.applyNextColor(part)
-        if rHandX <= 1400: self.lock[i] = False
+        if rHandX <= 1500: self.lock[i] = False
 
     def updateMixPart(self, rHandX, rHandY, lHandY, i, part):
         # Flip sign gesture
@@ -605,7 +628,7 @@ class Game(object):
                 elif rHandY < self.screenHeight:
                     self.nextColor[2] += 20 * self.sign
             self.lock[i] = True
-        if rHandX <= 1400: self.lock[i] = False
+        if rHandX <= 1500: self.lock[i] = False
         self.applyNextColorBounds()
         self.applyNextColor(part)
 
@@ -703,16 +726,23 @@ class Game(object):
         # Blits images to the screen for different GUI modes
         if self.mode == self.FULLSCREEN or self.mode == self.CAMERA: return
         self.screen.blit(self.fullScreen, (0,440))
+        self.screen.blit(self.help, (0,100))
         if self.mode == self.MENU: self.screen.blit(self.menu, (760,0))
         elif self.mode == self.CAMERADONE: self.blitCameraDone()
         elif self.mode == self.DESIGN: self.screen.blit(self.design, (760,0))
         elif self.mode in [self.DESIGNFRONTMIX,self.DESIGNSIDESMIX,self.DESIGNSLEEVESMIX]:
             self.screen.blit(self.palette, (617,0))
-            if self.sign == 1: self.screen.blit(self.addMode, (0,100))
-            elif self.sign == -1: self.screen.blit(self.minusMode, (0,100))
+            if self.sign == 1: self.screen.blit(self.addMode, (0,183))
+            elif self.sign == -1: self.screen.blit(self.minusMode, (0,183))
         elif self.mode in [self.DESIGNFRONT,self.DESIGNSIDES,self.DESIGNSLEEVES]:
-            self.screen.blit(self.mix, (0,100))
+            self.screen.blit(self.mix, (0,183))
             self.screen.blit(self.designColors, (810,0))
+        elif self.mode == self.HELPMENU:
+            self.screen.blit(self.helpMenu, (0,0))
+        elif self.mode == self.HELPDESIGN:
+            self.screen.blit(self.helpDesign, (0,0))
+        elif self.mode == self.HELPCLOSET:
+            self.screen.blit(self.helpCloset, (0,0))
 
     def updateBodies(self):
         # Goes through each body detected by kinect
