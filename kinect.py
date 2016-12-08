@@ -233,10 +233,6 @@ class Game(object):
         self.yRightElbow = [1,1,1,1,1,1]
         self.leftArmAngle = [0,0,0,0,0,0]
         self.rightArmAngle = [0,0,0,0,0,0]
-        self.xRightHand = [0,0,0,0,0,0]
-        self.yRightHand = [0,0,0,0,0,0]
-        self.xLeftHand = [0,0,0,0,0,0]
-        self.yLeftHand = [0,0,0,0,0,0]
         self.leftDownSwing = [True, True, True, True, True, True]
         self.rightDownSwing = [True, True, True, True, True, True]
         self.initArmCalc()
@@ -306,7 +302,8 @@ class Game(object):
         (self.xLeftShoulder[i],
         self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderLeft")
         (self.xRightShoulder[i],
-        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight")
+        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,
+                                                    "ShoulderRight")
 
         self.bodyX1[i] = (self.xRightShoulder[i] + self.xRightHip[i]) / 2
         self.bodyX2[i] = (self.xLeftShoulder[i] + self.xLeftHip[i]) / 2
@@ -345,13 +342,10 @@ class Game(object):
                                     self.leftArmAngle[i],
                                     self.rightArmAngle[i],
                                     self.bodyZ)
-        # self.model.shapes[i].draw()
-        #print('updated', i, 'body')
-        #print(bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
 
     def getBodyCoord(self, i):
-        bodyCenterX = ((self.bodyX1[i] + self.bodyX2[i]) / 2) - self.screenWidth / 2
-        bodyCenterY = ((self.bodyY1[i] + self.bodyY2[i]) / 2) - self.screenHeight / 2
+        bodyCenterX = ((self.bodyX1[i]+self.bodyX2[i])/2)-self.screenWidth / 2
+        bodyCenterY = ((self.bodyY1[i]+self.bodyY2[i])/2)-self.screenHeight / 2
         bodyWidth = self.bodyX2[i] - self.bodyX1[i]
         bodyHeight = -1 * (self.bodyY1[i] - self.bodyY2[i])
         return (bodyCenterX, bodyCenterY, bodyWidth, bodyHeight)
@@ -375,11 +369,15 @@ class Game(object):
     def updateArms(self, joints, jointPoints, i):
         # Updates arm variables
         (self.xLeftShoulder[i],
-        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints, "ShoulderLeft")
+        self.yLeftShoulder[i]) = self.dataJointTypes(jointPoints,
+                                                    "ShoulderLeft")
         (self.xRightShoulder[i],
-        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,"ShoulderRight")
-        self.xLeftElbow[i],self.yLeftElbow[i] = self.dataJointTypes(jointPoints,"ElbowLeft")
-        self.xRightElbow[i],self.yRightElbow[i] = self.dataJointTypes(jointPoints,"ElbowRight")
+        self.yRightShoulder[i]) = self.dataJointTypes(jointPoints,
+                                                    "ShoulderRight")
+        self.xLeftElbow[i],self.yLeftElbow[i] = self.dataJointTypes(jointPoints,
+                                                                    "ElbowLeft")
+        self.xRightElbow[i],self.yRightElbow[i]=self.dataJointTypes(jointPoints,
+                                                                   "ElbowRight")
         self.updateLeftArm(i)
         self.updateRightArm(i)
 
@@ -421,10 +419,10 @@ class Game(object):
         self.rightArmAngle[i] = theta
 
     def updateHands(self, joints, jointPoints, i):
-        self.xRightHand[i], self.yRightHand[i] = self.data(joints, "HandRight")
-        self.xLeftHand[i], self.yLeftHand[i] = self.data(joints, "HandLeft")
-        self.rHandX[i], self.rHandY[i] = self.dataJointTypes(jointPoints, "HandRight")
-        self.lHandX[i], self.lHandY[i] = self.dataJointTypes(jointPoints, "HandLeft")
+        self.rHandX[i], self.rHandY[i] = self.dataJointTypes(jointPoints,
+                                                             "HandRight")
+        self.lHandX[i], self.lHandY[i] = self.dataJointTypes(jointPoints,
+                                                             "HandLeft")
 
     def updateAllGUI(self):
         for body in self.trackedBodies:
@@ -467,6 +465,7 @@ class Game(object):
         self.updateModes(rHandX, rHandY, lHandY, lHandX, i)
 
     def backToMenu(self):
+        # Processes where to go after hand clap
         if self.mode == self.CLOSET:
             if len(self.closetModel.shapes) >= 3:
                 self.closetModel.shapes.pop()
@@ -541,6 +540,7 @@ class Game(object):
             os.chdir(mainPath)
 
     def saveImage(self):
+        # saves image from screenshot
         screenshotCount = 0
         for fileName in os.listdir("."):
             if fileName.startswith("picture"):
@@ -592,7 +592,8 @@ class Game(object):
             self.closetModel.shapes.pop()
         if lHandX > 400: self.closetLock[i] = False
         # Costumes mode
-        if lHandX < 300 and lHandY <= 532 and lHandY > 366 and not self.closetLock[i]:
+        if (lHandX < 300 and lHandY <= 532 and lHandY > 366 and
+            not self.closetLock[i]):
             self.closetLock[i] = True
             self.closetModel.shapes.extend(self.addCloset)
             self.mode = self.CLOSET
@@ -613,10 +614,20 @@ class Game(object):
             for shape in self.model.shapes:
                 shape.colors = self.nextColors
 
+    def setClosetColors(self):
+        self.closetColors = (
+                    [
+                    [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                    [(200,0,0),(61, 187, 198),(43, 156, 54)],
+                    [(61, 187, 198),(43, 156, 54),(200,0,0)]
+                    ])
+
+
     def updateCloset(self,rHandX,rHandY,lHandY,lHandX,i):
         # Costumes mode
         if lHandX > 400: self.closetLock[i] = False
-        if lHandX < 300 and lHandY <= 532 and lHandY > 366 and not self.closetLock[i]:
+        if (lHandX < 300 and lHandY <= 532 and lHandY > 366 and
+            not self.closetLock[i]):
             self.closetLock[i] = True
             self.closetModel.shapes.pop()
             self.closetModel.shapes.pop()
@@ -624,15 +635,9 @@ class Game(object):
             self.mode = self.COSTUMECLOSET
         # Right Panels
         if rHandX >= 1520:
-            self.closetColors = (
-                        [
-                        [(43, 156, 54),(200,0,0),(61, 187, 198)],
-                        [(200,0,0),(61, 187, 198),(43, 156, 54)],
-                        [(61, 187, 198),(43, 156, 54),(200,0,0)]
-                        ])
+            self.setClosetColors
             if rHandY <= 360:
                 self.nextColors = self.closetColors[0]
-                print(self.closetColors[0])
             elif rHandY > 360 and rHandY < 720:
                 self.nextColors = self.closetColors[1]
             elif rHandY < 1080:
@@ -650,14 +655,10 @@ class Game(object):
             self.lock[i] = True
             if rHandY <= 360:
                 self.nextMode = self.DESIGNFRONT
-                # self.frontColor = list(self.model.shapes[i].colors[1])
             elif rHandY > 360 and rHandY < 720:
                 self.nextMode = self.DESIGNSIDES
-                # self.sidesColor = list(self.model.shapes[i].colors[0])
             elif rHandY < 1080:
                 self.nextMode = self.DESIGNSLEEVES
-                # self.sleevesColor = list(self.model.shapes[i].colors[2])
-
             self.mode = self.nextMode
             self.lock[i] = True
 
@@ -671,6 +672,7 @@ class Game(object):
                 shape.colors[2] = tuple(self.sleevesColor)
 
     def updatePart(self, rHandX, rHandY, lHandY, lHandX, i, part):
+        # Updates the color on the part
         step = self.screenHeight / self.numColors
         if lHandX < 300 and lHandY <= 532 and lHandY > 366:
             if part == "Sleeves":self.mode = self.DESIGNSLEEVESMIX
@@ -690,6 +692,7 @@ class Game(object):
         if rHandX <= 1500: self.lock[i] = False
 
     def updateMixPart(self, rHandX, rHandY, lHandY, i, part):
+        # Updates the part based on mixed color
         # Flip sign gesture
         if (abs(rHandY-lHandY) >= 700 and not self.flipLock[i]
             and rHandX < 1520):
@@ -757,6 +760,7 @@ class Game(object):
             )
 
     def getColors(self):
+        # Gets color based on gradient
         if self.mode == self.DESIGNFRONTMIX:
             redColor = self.redGradient[int(self.frontColor[0]/255 * 10)]
             greenColor = self.greenGradient[int(self.frontColor[1]/255 * 10)]
@@ -794,7 +798,8 @@ class Game(object):
         os.chdir("screenshots")
         if self.screenshot == None:
             self.screenshot = pygame.image.load("screenshot.png")
-            self.tempScreenshot = pygame.transform.scale(self.screenshot,(672,378))
+            self.tempScreenshot = pygame.transform.scale(self.screenshot,
+                                                        (672,378))
         else:
             self.screen.blit(self.tempScreenshot, (119,81))
             self.screen.blit(self.cameraDone, (810,0))
@@ -808,11 +813,15 @@ class Game(object):
         if self.mode == self.MENU: self.screen.blit(self.menu, (760,0))
         elif self.mode == self.CAMERADONE: self.blitCameraDone()
         elif self.mode == self.DESIGN: self.screen.blit(self.design, (760,0))
-        elif self.mode in [self.DESIGNFRONTMIX,self.DESIGNSIDESMIX,self.DESIGNSLEEVESMIX]:
+        elif self.mode in [self.DESIGNFRONTMIX,self.DESIGNSIDESMIX,
+                            self.DESIGNSLEEVESMIX]:
             self.screen.blit(self.palette, (617,0))
             if self.sign == 1: self.screen.blit(self.addMode, (0,183))
             elif self.sign == -1: self.screen.blit(self.minusMode, (0,183))
-        elif self.mode in [self.DESIGNFRONT,self.DESIGNSIDES,self.DESIGNSLEEVES]:
+        self.blitGUI2()
+
+    def blitGUI2(self):
+        if self.mode in [self.DESIGNFRONT,self.DESIGNSIDES,self.DESIGNSLEEVES]:
             self.screen.blit(self.mix, (0,183))
             self.screen.blit(self.designColors, (810,0))
         elif self.mode == self.HELPMENU: self.screen.blit(self.helpMenu, (0,0))
@@ -841,10 +850,9 @@ class Game(object):
                     self.model.shapes.append(
                         shirt(0, 0, 0, self.frameSurface,
                         [(43, 156, 54),(200,0,0),(61, 187, 198)]))
-                # Updates each shirt iwth joint information
+                # Updates each shirt with joint information
                 joints = body.joints
-                # self.jointPoints[self.trackedBodies[i][0]] = self.kinect.body_joints_to_color_space(joints)
-                jointPoints = self.kinect.body_joints_to_color_space(body.joints)
+                jointPoints = self.kinect.body_joints_to_color_space(joints)
                 self.updateArms(joints, jointPoints, self.trackedBodies[i][0])
                 self.updateHands(joints, jointPoints, self.trackedBodies[i][0])
                 self.updateBody(joints, jointPoints, self.trackedBodies[i][0])
@@ -900,6 +908,8 @@ class Game(object):
 
     def addCostume(self, image):
         # Guided by homography and opencv tutorials
+        # http://www.learnopencv.com/homography-examples-using-opencv-python-c/
+        # http://docs.opencv.org/trunk/d0/d86/tutorial_py_image_arithmetics.html
         # Get pygame screen and convert to BGR for opencv
         source = cv2.cvtColor(self.pygame_to_cvimage(image), cv2.COLOR_RGB2BGR)
         # Search through all bodies
@@ -926,8 +936,8 @@ class Game(object):
         image = self.cvimage_to_pygame(cv2.cvtColor(result, cv2.COLOR_BGR2RGB))
         return image
 
-    def warp(self, pointList, source):
-        # Get warped shirt with homography
+    def getImageAndPoints(self):
+        # Loads image based on what is loaded onto costume
         if self.closCostume == "IronMan":
             self.frontImage = self.ironManFront
             self.frontImagePoints = self.ironManPts
@@ -937,6 +947,11 @@ class Game(object):
         elif self.closCostume == "GreenLantern":
             self.frontImage = self.greenLanternFront
             self.frontImagePoints = self.greenLanterPts
+
+
+    def warp(self, pointList, source):
+        self.getImageAndPoints()
+        # Get warped shirt with homography
         h, status = cv2.findHomography(self.frontImagePoints, pointList)
         warped = cv2.warpPerspective(self.frontImage,
                                     h,
