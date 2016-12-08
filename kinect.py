@@ -81,7 +81,7 @@ class Game(object):
 
     def initGUIVars(self):
         self.initGUIModes()
-        self.mode = self.MENU
+        self.mode = self.START
         # Inits colors for model
         self.nextColors = [(43, 156, 54),(200,  0,0),(61, 187, 198)]
         self.frontColor = [200, 0, 0]
@@ -92,6 +92,7 @@ class Game(object):
         self.initCloset()
 
     def initCloset(self):
+        self.changeColors = False
         self.nextCos = None
         self.closCostume = None
         self.addCloset = (
@@ -115,6 +116,8 @@ class Game(object):
 
     def initGUIModes(self):
         # Inits different GUI modes
+        self.START = 17
+        self.STARTHELP = 18
         self.MENU = 1
         self.CLOSET = 2
         self.DESIGN = 3
@@ -149,6 +152,7 @@ class Game(object):
         self.cameraTimer = 3000
 
     def initPics(self):
+        # Loads all images
         mainPath = os.getcwd()
         os.chdir("sourcePictures")
         self.menu = pygame.image.load("menu.png")
@@ -160,6 +164,8 @@ class Game(object):
         self.cameraDone = pygame.image.load("cameradone.png")
         self.designColors = pygame.image.load("designcolors.png")
         self.mix = pygame.image.load("mix.png")
+        self.startScreen = pygame.image.load("splashscreen.png")
+        self.startHelpScreen = pygame.image.load("welcomescreen.png")
         self.initCostumePics()
         self.initHelpPics()
         os.chdir(mainPath)
@@ -480,8 +486,8 @@ class Game(object):
         if self.mode == self.HELPCLOSET:
             self.closetModel.shapes.extend(self.addCloset)
             nextMode = self.CLOSET
-        if self.mode == self.HELPDESIGN:
-            nextMode = self.preHelp
+        if self.mode == self.HELPDESIGN: nextMode = self.preHelp
+        if self.mode == self.START: nextMode = self.STARTHELP
         self.mode = nextMode
 
     def updateModes(self, rHandX, rHandY, lHandY, lHandX, i):
@@ -635,16 +641,19 @@ class Game(object):
             self.mode = self.COSTUMECLOSET
         # Right Panels
         if rHandX >= 1520:
-            self.setClosetColors
+            self.setClosetColors()
             if rHandY <= 360:
                 self.nextColors = self.closetColors[0]
+                self.changeColors = True
             elif rHandY > 360 and rHandY < 720:
                 self.nextColors = self.closetColors[1]
+                self.changeColors = True
             elif rHandY < 1080:
                 self.nextColors = self.closetColors[2]
+                self.changeColors = True
         # Change Colors
-        if rHandY < 50 and lHandY < 50:
-            #print(self.nextColors)
+        if rHandY < 50 and lHandY < 50 and self.changeColors:
+            self.changeColors = False
             for shape in self.model.shapes:
                 shape.colors = self.nextColors
                 self.closCostume = None
@@ -834,6 +843,10 @@ class Game(object):
         elif self.mode == self.COSTUMECLOSET:
             self.screen.blit(self.costumeList, (810,0))
             self.screen.blit(self.backCloset, (0,183))
+        elif self.mode == self.START:
+            self.screen.blit(self.startScreen, (0,0))
+        elif self.mode == self.STARTHELP:
+            self.screen.blit(self.startHelpScreen, (0,0))
 
     def updateBodies(self):
         # Goes through each body detected by kinect
