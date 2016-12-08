@@ -446,16 +446,15 @@ class Game(object):
             self.menuLock[i] = False
         if self.mode == self.FULLSCREEN or self.mode > 13: return
         # Help Button
-        if lHandX < 200 and lHandY <= 366 and lHandY > 200:
+        if lHandX < 300 and lHandY <= 366 and lHandY > 200:
             if self.mode in [self.CLOSET,self.COSTUMECLOSET]:
                 self.mode = self.HELPCLOSET
             if self.mode == self.MENU: self.mode = self.HELPMENU
             if self.mode == self.DESIGN or self.mode in range(7,13):
                 self.preHelp = self.mode
-                print(self.preHelp)
                 self.mode = self.HELPDESIGN
         # Exit Button
-        if lHandX < 200 and lHandY < 200 and lHandX > 0 and lHandY > 0:
+        if lHandX < 300 and lHandY < 200 and lHandX > 0 and lHandY > 0:
             self.done = True
         # Fullscreen Button
         elif lHandX < 400 and lHandY > 880:
@@ -587,6 +586,10 @@ class Game(object):
             elif rHandY < 1080: self.mode = self.CAMERA
 
     def updateCosCloset(self,rHandX,rHandY,lHandY,lHandX, i):
+        if len(self.closetModel.shapes) >= 3:
+            self.closetModel.shapes.pop()
+            self.closetModel.shapes.pop()
+            self.closetModel.shapes.pop()
         if lHandX > 400: self.closetLock[i] = False
         # Costumes mode
         if lHandX < 300 and lHandY <= 532 and lHandY > 366 and not self.closetLock[i]:
@@ -621,14 +624,22 @@ class Game(object):
             self.mode = self.COSTUMECLOSET
         # Right Panels
         if rHandX >= 1520:
+            self.closetColors = (
+                        [
+                        [(43, 156, 54),(200,0,0),(61, 187, 198)],
+                        [(200,0,0),(61, 187, 198),(43, 156, 54)],
+                        [(61, 187, 198),(43, 156, 54),(200,0,0)]
+                        ])
             if rHandY <= 360:
                 self.nextColors = self.closetColors[0]
+                print(self.closetColors[0])
             elif rHandY > 360 and rHandY < 720:
                 self.nextColors = self.closetColors[1]
             elif rHandY < 1080:
                 self.nextColors = self.closetColors[2]
         # Change Colors
         if rHandY < 50 and lHandY < 50:
+            #print(self.nextColors)
             for shape in self.model.shapes:
                 shape.colors = self.nextColors
                 self.closCostume = None
@@ -674,8 +685,8 @@ class Game(object):
                 elif rHandY <= step*5: self.nextColor = [0,162,232]
                 elif rHandY <= step*6: self.nextColor = [63,72,204]
                 elif rHandY <= step*7: self.nextColor = [163,73,164]
+                self.applyNextColor(part)
             self.lock[i] = True
-            self.applyNextColor(part)
         if rHandX <= 1500: self.lock[i] = False
 
     def updateMixPart(self, rHandX, rHandY, lHandY, i, part):
@@ -695,12 +706,11 @@ class Game(object):
                 elif rHandY < self.screenHeight:
                     self.nextColor[2] += 20 * self.sign
             self.lock[i] = True
+            self.applyNextColorBounds()
+            self.applyNextColor(part)
         if rHandX <= 1500: self.lock[i] = False
-        self.applyNextColorBounds()
-        self.applyNextColor(part)
 
     def applyNextColor(self, part):
-        print("applying color")
         for shape in self.model.shapes:
             if part == "Sleeves":
                 shape.colors[2] = tuple(self.nextColor)

@@ -442,18 +442,6 @@ class shirt(object):
                 (24,27,31,29)
                 ]
 
-        # Base Format of points for body
-        # self.points = [
-        #  Point(x - xSide, y - ySide, z - self.zSide, self.surface, view),
-        #  Point(x + xSide, y - ySide, z - self.zSide, self.surface, view),
-        #  Point(x + xSide, y + ySide, z - self.zSide, self.surface, view),
-        #  Point(x - xSide, y + ySide, z - self.zSide, self.surface, view),
-        #  Point(x - xSide, y - ySide, z + self.zSide, self.surface, view),
-        #  Point(x + xSide, y - ySide, z + self.zSide, self.surface, view),
-        #  Point(x + xSide, y + ySide, z + self.zSide, self.surface, view),
-        #  Point(x - xSide, y + ySide, z + self.zSide, self.surface, view)
-        #  ]
-
     def update(self, cX, cY, width, height, angleXZ, leftAng, rightAng, bodyZ):
         # Process rotation
         angleXZ *= math.pi/180.0
@@ -629,6 +617,9 @@ class shirt(object):
             color,
             pointList
             )
+        self.drawTopAndFront()
+
+    def drawTopAndFront(self):
         face = self.faces[0]
         pointList = []
         for pointIndex in face:
