@@ -92,6 +92,7 @@ class Game(object):
         self.initCloset()
 
     def initCloset(self):
+        self.nextCos = None
         self.closCostume = None
         self.addCloset = (
                     [
@@ -161,7 +162,6 @@ class Game(object):
         self.mix = pygame.image.load("mix.png")
         self.initCostumePics()
         self.initHelpPics()
-        self.frontImagePoints = np.array([[0,0],[152,0],[152,255],[0,255]])
         os.chdir(mainPath)
         self.screenshot = None
         self.tempScreenShot = None
@@ -169,7 +169,15 @@ class Game(object):
     def initCostumePics(self):
         self.costume = pygame.image.load("costume.png")
         self.backCloset = pygame.image.load("back.png")
-        self.frontImage = cv2.imread("ironManFront.png")
+        self.costumeList = pygame.image.load("costumelist.png")
+        self.ironManFront = cv2.imread("ironManFront.png")
+        self.superManFront = cv2.imread("supermanFront.png")
+        self.greenLanternFront = cv2.imread("greenlanternFront.png")
+        self.frontImage = None
+        self.frontImagePoints = None
+        self.ironManPts = np.array([[0,0],[152,0],[152,255],[0,255]])
+        self.greenLanterPts = np.array([[0,0],[125,0],[125,208],[0,208]])
+        self.superManPts = np.array([[0,0],[161,0],[161,247],[0,247]])
 
     def initHelpPics(self):
         self.help = pygame.image.load("help.png")
@@ -438,7 +446,8 @@ class Game(object):
         if self.mode == self.FULLSCREEN or self.mode > 13: return
         # Help Button
         if lHandX < 200 and lHandY <= 366 and lHandY > 200:
-            if self.mode == self.CLOSET: self.mode = self.HELPCLOSET
+            if self.mode in [self.CLOSET,self.COSTUMECLOSET]:
+                self.mode = self.HELPCLOSET
             if self.mode == self.MENU: self.mode = self.HELPMENU
             if self.mode == self.DESIGN or self.mode in range(7,13):
                 self.preHelp = self.mode
@@ -459,19 +468,21 @@ class Game(object):
 
     def backToMenu(self):
         if self.mode == self.CLOSET:
-            self.closetModel.shapes.pop()
-            self.closetModel.shapes.pop()
-            self.closetModel.shapes.pop()
+            if len(self.closetModel.shapes) >= 3:
+                self.closetModel.shapes.pop()
+                self.closetModel.shapes.pop()
+                self.closetModel.shapes.pop()
         elif self.mode == self.CAMERA:
             self.cameraStart = 0
         elif self.mode == self.CAMERADONE:
             self.screenshot = None
             self.tempScreenshot = None
         nextMode = self.MENU
-        if self.mode == self.HELPCLOSET: nextMode = self.CLOSET
+        if self.mode == self.HELPCLOSET:
+            self.closetModel.shapes.extend(self.addCloset)
+            nextMode = self.CLOSET
         if self.mode == self.HELPDESIGN:
             nextMode = self.preHelp
-            print('going to', nextMode)
         self.mode = nextMode
 
     def updateModes(self, rHandX, rHandY, lHandY, lHandX, i):
@@ -575,41 +586,48 @@ class Game(object):
             elif rHandY < 1080: self.mode = self.CAMERA
 
     def updateCosCloset(self,rHandX,rHandY,lHandY,lHandX, i):
-        if lHandX > 200: self.closetLock[i] = False
+        if lHandX > 300: self.closetLock[i] = False
         # Costumes mode
         if lHandX < 200 and lHandY <= 532 and lHandY > 366 and not self.closetLock[i]:
             self.closetLock[i] = True
             self.closetModel.shapes.extend(self.addCloset)
             self.mode = self.CLOSET
         # Right Panel
-        if rHandX >= 1520:
+        if rHandX >= 1620:
             if rHandY <= 360:
-                self.nextColors = self.closetColors[0]
+                self.nextCos = "IronMan"
+                self.nextColors = [(200, 0, 0),(200,0,0),(200, 0, 0)]
             elif rHandY > 360 and rHandY < 720:
-                self.nextColors = self.closetColors[1]
+                self.nextCos = "Superman"
+                self.nextColors = [(0, 0, 200),(0,0,200),(0, 0, 200)]
             elif rHandY < 1080:
-                self.nextColors = self.closetColors[2]
+                self.nextCos = "GreenLantern"
+                self.nextColors = [(0, 200, 0),(0,200,0),(0, 200, 0)]
         # Change Colors
-        if rHandY < 50 and lHandY < 50:
+        if rHandY < 50 and lHandY < 50 and self.nextCos != None:
+            self.closCostume = self.nextCos
             for shape in self.model.shapes:
                 shape.colors = self.nextColors
 
     def updateCloset(self,rHandX,rHandY,lHandY,lHandX,i):
         # Costumes mode
-        if lHandX > 200: self.closetLock[i] = False
+        if lHandX > 300: self.closetLock[i] = False
         if lHandX < 200 and lHandY <= 532 and lHandY > 366 and not self.closetLock[i]:
             self.closetLock[i] = True
             self.closetModel.shapes.pop()
             self.closetModel.shapes.pop()
             self.closetModel.shapes.pop()
             self.mode = self.COSTUMECLOSET
-        # Right Panel
+        # Right Panels
         if rHandX >= 1520:
             if rHandY <= 360:
+                self.closCostume = None
                 self.nextColors = self.closetColors[0]
             elif rHandY > 360 and rHandY < 720:
+                self.closCostume = None
                 self.nextColors = self.closetColors[1]
             elif rHandY < 1080:
+                self.closCostume = None
                 self.nextColors = self.closetColors[2]
         # Change Colors
         if rHandY < 50 and lHandY < 50:
@@ -795,6 +813,7 @@ class Game(object):
         elif self.mode == self.CLOSET:
             self.screen.blit(self.costume, (0,183))
         elif self.mode == self.COSTUMECLOSET:
+            self.screen.blit(self.costumeList, (810,0))
             self.screen.blit(self.backCloset, (0,183))
 
     def updateBodies(self):
@@ -861,8 +880,8 @@ class Game(object):
             (self.screen.get_width(), target_height)
         )
         # Does homography on shirt
-        # if surface_to_draw != None:
-        #      surface_to_draw = self.addCostume(surface_to_draw)
+        if surface_to_draw != None and self.closCostume != None:
+             surface_to_draw = self.addCostume(surface_to_draw)
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         # Blits GUI images onto image
@@ -899,6 +918,15 @@ class Game(object):
 
     def warp(self, pointList, source):
         # Get warped shirt with homography
+        if self.closCostume == "IronMan":
+            self.frontImage = self.ironManFront
+            self.frontImagePoints = self.ironManPts
+        elif self.closCostume == "Superman":
+            self.frontImage = self.superManFront
+            self.frontImagePoints = self.superManPts
+        elif self.closCostume == "GreenLantern":
+            self.frontImage = self.greenLanternFront
+            self.frontImagePoints = self.greenLanterPts
         h, status = cv2.findHomography(self.frontImagePoints, pointList)
         warped = cv2.warpPerspective(self.frontImage,
                                     h,
