@@ -912,7 +912,8 @@ class Game(object):
         )
         # Does homography on shirt
         if surface_to_draw != None and self.closCostume != None:
-             surface_to_draw = self.addCostume(surface_to_draw)
+            try: surface_to_draw = self.addCostume(surface_to_draw)
+            except: pass
         self.screen.blit(surface_to_draw, (0,0))
         surface_to_draw = None
         # Blits GUI images onto image
