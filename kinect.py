@@ -703,11 +703,11 @@ class Game(object):
     def updateMixPart(self, rHandX, rHandY, lHandY, i, part):
         # Updates the part based on mixed color
         # Flip sign gesture
-        if (abs(rHandY-lHandY) >= 700 and not self.flipLock[i]
+        if (abs(rHandY-lHandY) >= 600 and not self.flipLock[i]
             and rHandX < 1520):
             self.sign *= -1
             self.flipLock[i] = True
-        if abs(rHandY-lHandY) <= 500 and self.flipLock[i]:
+        if abs(rHandY-lHandY) <= 400 and self.flipLock[i]:
             self.flipLock[i] = False
         # Right Panel
         if rHandX >= 1520:
@@ -1022,4 +1022,3 @@ class Game(object):
 
 game = Game()
 game.run()
-
